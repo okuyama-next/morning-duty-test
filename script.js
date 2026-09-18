@@ -3,6 +3,7 @@ let globalData = null;
 let pendingUndoPayload = null;
 let retryCount = 0;
 
+// クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
   { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。<br>明るく元気に笑って泣いて怒る人も、みんなから愛される。<br>感謝の気持ちを声にすると、やまびこになって返ってくる。<br>礼儀とマナーを身につけると、不思議と心もキレイになる。" },
   { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。<br>お客様と誠実に向き合う人は、すべての人と誠実に向き合う。<br>お客様の気持ちになって考えることは、自分の心の中を覗いてみることに等しい。" },
@@ -26,9 +27,15 @@ function getTodayFormattedString() {
 
 async function fetchDutyData() {
   try {
-    const response = await fetch(GAS_URL);
+    const response = await fetch(GAS_URL, { redirect: "follow" });
+    
     const text = await response.text();
-    let data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      throw new Error("HTML応答エラー（リトライ処理へ）");
+    }
 
     globalData = data;
     retryCount = 0;
@@ -37,6 +44,7 @@ async function fetchDutyData() {
 
   } catch (error) {
     console.warn("データ通信失敗。再試行します:", error);
+    
     if (retryCount < 3) {
       retryCount++;
       setTimeout(fetchDutyData, 1000);
@@ -100,24 +108,11 @@ function renderUI(data) {
       badgeClass = "normal";
     }
 
-    // 最新の共有メモを表示
-    let memoText = "";
-    if (item.memos && item.memos.length > 0) {
-      memoText = item.memos[item.memos.length - 1].text;
-    } else if (item.memo) {
-      memoText = item.memo;
-    }
-
-    const memoHtml = memoText ? `<div style="font-size:12px; color:#555; margin-top:4px;">💬 ${escapeHtml(memoText)}</div>` : '';
-
     html += `
       <div class="member-item ${isNext ? 'is-next' : ''}">
         <div class="member-info">
-          <div>
-            <span class="member-no">No.${item.no}</span>
-            <span class="member-name">${item.name}</span>
-          </div>
-          ${memoHtml}
+          <span class="member-no">No.${item.no}</span>
+          <span class="member-name">${item.name}</span>
         </div>
         <div class="member-actions">
           <span class="turn-badge ${badgeClass}">${badgeText}</span>
@@ -154,7 +149,7 @@ function renderEditList(data, filterKeyword = "") {
   sortedList.forEach(item => {
     html += `
       <div class="edit-member-item">
-        <div class="member-info" onclick="openStandaloneMemoModal(${item.no})" style="cursor:pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+        <div class="member-info">
           <span class="member-no">No.${item.no}</span>
           <span class="member-name">${item.name}</span>
         </div>
@@ -169,107 +164,7 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
-function escapeHtml(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-/* ★独立した専用メモ画面（ストック・追加・編集・削除）★ */
-function openStandaloneMemoModal(targetNo) {
-  const member = globalData?.list?.find(m => m.no === targetNo);
-  if (!member) return;
-
-  closeSettingsModal();
-
-  let memoModal = document.getElementById('standaloneMemoModal');
-  if (!memoModal) {
-    memoModal = document.createElement('div');
-    memoModal.id = 'standaloneMemoModal';
-    memoModal.className = 'modal-overlay';
-    document.body.appendChild(memoModal);
-  }
-
-  let memos = member.memos || [];
-  if (typeof member.memo === "string" && member.memo.trim() !== "" && memos.length === 0) {
-    memos = [{ id: "old", text: member.memo }];
-  }
-
-  let memoListHtml = "";
-  if (memos.length === 0) {
-    memoListHtml = `<div style="text-align:center; color:#888; font-size:13px; padding:12px;">メモはまだありません</div>`;
-  } else {
-    memos.forEach(m => {
-      memoListHtml += `
-        <div style="background:#f8f9fa; border:1px solid #e2e8f0; border-radius:6px; padding:10px 12px; margin-bottom:8px;">
-          <div style="font-size:13px; color:#333; white-space:pre-wrap; word-break:break-all;">${escapeHtml(m.text)}</div>
-          <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
-            <button class="btn-small" style="padding:2px 8px; font-size:11px;" onclick="promptEditMemo(${member.no}, '${m.id}', '${escapeHtml(m.text)}')">編集</button>
-            <button class="btn-delete" style="padding:2px 8px; font-size:11px;" onclick="confirmDeleteMemo(${member.no}, '${m.id}')">削除</button>
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  document.body.classList.add('modal-open');
-  memoModal.style.display = 'flex';
-  memoModal.innerHTML = `
-    <div class="modal-content" style="max-width:420px; width:92%;">
-      <div class="modal-header">
-        <h3 class="modal-title">${member.name} さんの共有メモ</h3>
-        <button class="modal-close" onclick="closeStandaloneMemoModal()">×</button>
-      </div>
-      <div class="modal-body" style="padding:16px;">
-        <div style="margin-bottom:16px;">
-          <textarea id="newMemoInput" style="width:100%; height:70px; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）連絡事項など"></textarea>
-          <button class="btn btn-add" style="width:100%; margin-top:8px; padding:8px; font-size:13px;" onclick="submitNewMemo(${member.no})">＋ メモを保存</button>
-        </div>
-        <div style="font-weight:bold; font-size:12px; color:#666; margin-bottom:8px;">保存済みメモ一覧</div>
-        <div style="max-height:180px; overflow-y:auto; padding-right:4px;">
-          ${memoListHtml}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function closeStandaloneMemoModal() {
-  const memoModal = document.getElementById('standaloneMemoModal');
-  if (memoModal) memoModal.style.display = 'none';
-  openSettingsModal();
-}
-
-async function submitNewMemo(no) {
-  const text = document.getElementById('newMemoInput').value.trim();
-  if (!text) {
-    alert("メモを入力してください。");
-    return;
-  }
-  const res = await sendPost({ action: 'addMemo', targetNo: no, text: text });
-  if (res) {
-    openStandaloneMemoModal(no);
-  }
-}
-
-async function promptEditMemo(no, memoId, currentText) {
-  const newText = prompt("メモ内容を編集:", currentText);
-  if (newText !== null && newText.trim() !== "") {
-    const res = await sendPost({ action: 'editMemo', targetNo: no, memoId: memoId, text: newText.trim() });
-    if (res) {
-      openStandaloneMemoModal(no);
-    }
-  }
-}
-
-async function confirmDeleteMemo(no, memoId) {
-  if (confirm("このメモを削除しますか？")) {
-    const res = await sendPost({ action: 'deleteMemo', targetNo: no, memoId: memoId });
-    if (res) {
-      openStandaloneMemoModal(no);
-    }
-  }
-}
-
-/* モーダル・日付指定・完了等の処理 */
+/* --- クレドモーダル関連処理 --- */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
   let html = "";
@@ -308,6 +203,7 @@ function selectRandomCredo() {
   }
 }
 
+/* --- モーダル・日付指定制御 --- */
 function openDatePicker(no, name) {
   const box = document.getElementById('datePickerContainer');
   const todayStr = new Date().toISOString().split('T')[0];
@@ -338,7 +234,7 @@ async function submitCustomDuty(no, name) {
   }
   closeDatePicker();
   const res = await sendPost({ action: 'complete', targetNo: no, customDate: dateVal });
-  if (res) {
+  if (res && res.success) {
     showUndoBar(`${name} さんの完了（${dateVal}）を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
   }
 }
@@ -346,7 +242,7 @@ async function submitCustomDuty(no, name) {
 async function decrementDuty(no, name) {
   if (!confirm(`${name} さんの直近の朝礼完了を取り消し（マイナス）しますか？`)) return;
   const res = await sendPost({ action: 'decrement', targetNo: no });
-  if (res) {
+  if (res && res.success) {
     showUndoBar(`${name} さんの回数を1回減らしました`, { action: 'complete', targetNo: no });
   }
 }
@@ -389,14 +285,14 @@ function showUndoBar(text, payload) {
 function hideUndoBar() {
   pendingUndoPayload = null;
   const bar = document.getElementById('undoBar');
-  if (bar) bar.style.display = "none";
+  bar.style.display = "none";
 }
 
 async function submitDuty(no, name) {
-  if (!confirm(`${name} さんの朝礼完了を記録しますか？`)) return;
+  if (!confirm(`${name} さんの朝礼完了を記録しますか？\n`)) return;
   
   const res = await sendPost({ action: 'complete', targetNo: no });
-  if (res) {
+  if (res && res.success) {
     showUndoBar(`${name} さんの完了を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
   }
 }
@@ -411,28 +307,24 @@ async function addMember() {
   if (!confirm(`${name} さんを新規追加しますか？`)) return;
 
   const res = await sendPost({ action: 'add', name: name });
-  if (res) {
+  if (res && res.success) {
     input.value = '';
     hideUndoBar();
   }
 }
 
 async function deleteMember(no, name) {
-  const firstConfirm = confirm(`【警告】No.${no} ${name} さんを削除しますか？\n※この操作は取り消せません。`);
-  if (!firstConfirm) return;
-
-  const userInput = prompt(`【最終確認】誤削除を防ぐため、削除対象メンバーの名前を正確に入力してください。\n\n入力する名前: ${name}`);
+  if (!confirm(`本当に ${name} さん（No.${no}）を削除しますか？`)) return;
   
-  if (userInput !== name) {
-    alert("名前が一致しなかったため、削除をキャンセルしました。");
-    return;
-  }
-
-  hideUndoBar();
-
-  const res = await sendPost({ action: 'delete', targetNo: no }, true);
-  if (res) {
-    alert(`${name} さんを削除しました。`);
+  const res = await sendPost({ action: 'delete', targetNo: no });
+  if (res && res.success) {
+    showUndoBar(`${name} さんを削除しました`, { 
+      action: 'undo', 
+      undoType: 'delete', 
+      targetNo: no, 
+      name: name,
+      savedDates: res.savedDates || []
+    });
   }
 }
 
@@ -443,7 +335,7 @@ async function executeUndo() {
   await sendPost(payload);
 }
 
-async function sendPost(payload, isDelete = false) {
+async function sendPost(payload) {
   setButtonsDisabled(true);
 
   try {
@@ -453,14 +345,7 @@ async function sendPost(payload, isDelete = false) {
     });
 
     const result = await response.json();
-    globalData = result;
-    renderUI(result);
-    renderEditList(result, document.getElementById('searchMemberInput')?.value || "");
-
-    if (isDelete) {
-      hideUndoBar();
-    }
-
+    fetchDutyData();
     return result;
 
   } catch (error) {
