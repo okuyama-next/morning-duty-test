@@ -28,14 +28,14 @@ function getTodayFormattedString() {
 
 async function fetchDutyData() {
   try {
-    const response = await fetch(GAS_URL, { redirect: "follow" });
+    const response = await fetch(GAS_URL);
     
     const text = await response.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch (e) {
-      throw new Error("HTML応答エラー（リトライ処理へ）");
+      throw new Error("JSONパースエラー");
     }
 
     globalData = data;
@@ -236,7 +236,7 @@ async function submitCustomDuty(no, name) {
   }
   closeDatePicker();
   const res = await sendPost({ action: 'complete', targetNo: no, customDate: dateVal });
-  if (res && res.success) {
+  if (res) {
     showUndoBar(`${name} さんの完了（${dateVal}）を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
   }
 }
@@ -244,7 +244,7 @@ async function submitCustomDuty(no, name) {
 async function decrementDuty(no, name) {
   if (!confirm(`${name} さんの直近の朝礼完了を取り消し（マイナス）しますか？`)) return;
   const res = await sendPost({ action: 'decrement', targetNo: no });
-  if (res && res.success) {
+  if (res) {
     showUndoBar(`${name} さんの回数を1回減らしました`, { action: 'complete', targetNo: no });
   }
 }
@@ -291,10 +291,10 @@ function hideUndoBar() {
 }
 
 async function submitDuty(no, name) {
-  if (!confirm(`${name} さんの朝礼完了を記録しますか？\n（スプレッドシートに今日の日付が入力されます）`)) return;
+  if (!confirm(`${name} さんの朝礼完了を記録しますか？`)) return;
   
   const res = await sendPost({ action: 'complete', targetNo: no });
-  if (res && res.success) {
+  if (res) {
     showUndoBar(`${name} さんの完了を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
   }
 }
@@ -309,23 +309,34 @@ async function addMember() {
   if (!confirm(`${name} さんを新規追加しますか？`)) return;
 
   const res = await sendPost({ action: 'add', name: name });
-  if (res && res.success) {
+  if (res) {
     input.value = '';
     hideUndoBar();
   }
 }
 
+// ★メンバー削除（2重確認：確認ダイアログ＋名前入力チェック）★
 async function deleteMember(no, name) {
-  if (!confirm(`本当に ${name} さん（No.${no}）を削除しますか？`)) return;
+  // 1段階目の確認（ポップアップアラート）
+  const firstConfirm = confirm(`【警告】No.${no} ${name} さんを削除しますか？\n※この操作は取り消せません。`);
+  if (!firstConfirm) return;
+
+  // 2段階目の確認（正確な名前の入力チェック）
+  const userInput = prompt(`【最終確認】誤削除を防ぐため、削除対象メンバーの名前を正確に入力してください。\n\n入力する名前: ${name}`);
   
+  if (userInput !== name) {
+    alert("名前が一致しなかったため、削除をキャンセルしました。");
+    return;
+  }
+
+  // 2段階クリア時のみ送信
   const res = await sendPost({ action: 'delete', targetNo: no });
-  if (res && res.success) {
+  if (res) {
     showUndoBar(`${name} さんを削除しました`, { 
       action: 'undo', 
       undoType: 'delete', 
       targetNo: no, 
-      name: name,
-      savedDates: res.savedDates || []
+      name: name
     });
   }
 }
@@ -347,7 +358,9 @@ async function sendPost(payload) {
     });
 
     const result = await response.json();
-    fetchDutyData();
+    globalData = result;
+    renderUI(result);
+    renderEditList(result, document.getElementById('searchMemberInput')?.value || "");
     return result;
 
   } catch (error) {
@@ -360,4 +373,5 @@ async function sendPost(payload) {
   }
 }
 
+// 初期実行
 fetchDutyData();
