@@ -63,7 +63,6 @@
       background-color: #ceead6;
     }
 
-    /* クレド用ボタンのスタイル調整 */
     .credo-btn {
       color: #004085;
       background-color: #e8f0fe;
@@ -273,7 +272,65 @@
     .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
     .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-    /* --- クレド専用スタイル --- */
+    /* --- ビジョン・スピリット専用スタイル --- */
+    .hero-concept {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .concept-card {
+      background: #eef3f8;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+    }
+    .concept-tag {
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 0.2em;
+      color: #6c7a89;
+      margin-bottom: 8px;
+    }
+    .concept-main-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #0f2537;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .concept-body {
+      font-size: 0.85rem;
+      color: #334e68;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .promise-section {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed #cbd5e1;
+    }
+    .promise-tag {
+      font-size: 0.75rem;
+      font-weight: bold;
+      letter-spacing: 0.15em;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .section-divider {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #475569;
+      margin: 20px 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --- クレド（MIND）専用スタイル --- */
     .credo-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -284,7 +341,7 @@
       border: 1px solid #e9ecef;
       border-radius: 12px;
       padding: 14px 16px;
-      transition: all 0.25 ease;
+      transition: all 0.25s ease;
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
     .credo-card:hover {
@@ -335,9 +392,9 @@
       <div class="header-actions">
         <!-- クレドボタン -->
         <button class="sheet-link credo-btn" onclick="openCredoModal()">クレド 📖</button>
-        <a href="https://docs.google.com/spreadsheets/d/1V-gqaV6i0lAmZU1w_zAHZ0fzGd3etAbHGuGjxpr5SoE/edit?gid=870774158#gid=870774158" target="_blank" rel="noopener noreferrer" class="icon-btn" title="スプレッドシートを開く" style="text-decoration: none;">
-  📊
-        </a>
+        <!-- スプレッドシートボタン（絵文字） -->
+        <a href="https://docs.google.com/spreadsheets/d/1V-gqaV6i0lAmZU1w_zAHZ0fzGd3etAbHGuGjxpr5SoE/edit?gid=870774158#gid=870774158" target="_blank" rel="noopener noreferrer" class="icon-btn" title="スプレッドシートを開く" style="text-decoration: none;">📊</a>
+        <!-- 設定ボタン -->
         <button class="icon-btn" onclick="openSettingsModal()" title="メンバー管理設定">⚙️</button>
       </div>
     </div>
@@ -352,17 +409,37 @@
 
   <!-- クレド表示モーダル -->
   <div id="credoModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 650px;">
+    <div class="modal-content" style="max-width: 680px;">
       <div class="modal-header">
-        <h2>📖 TOHO HOUSE NEXT - MIND</h2>
+        <h2>📖 TOHO HOUSE NEXT</h2>
         <button class="close-btn" onclick="closeCredoModal()">✕</button>
       </div>
       <div class="modal-body">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <button class="btn btn-add" onclick="selectRandomCredo()" style="background: linear-gradient(135deg, #FF9800, #F57C00); border: none; font-weight: bold; padding: 10px 18px; border-radius: 20px;">
-            🎲 本日のクレドをランダム選択
+        
+        <!-- VISION / SPIRIT / PROMISE エリア -->
+        <div class="hero-concept">
+          <div class="concept-card">
+            <div class="concept-tag">V I S I O N</div>
+            <div class="concept-main-title">顧客感動度<br>NO.1 企業</div>
+            <div class="concept-body">期待を超える「満足」。\n想像を超える「安心」。\nそして、それは「感動」になる。</div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-tag">S P I R I T</div>
+            <div class="concept-body" style="font-weight: 500; font-size: 0.88rem;">「住まい」を通じて、\nひとつでも多くの幸せな人生を\n世の中に増やし続けていくために、\n私たちは本気で努力する。\nそして、私たちも幸せになる。</div>
+            <div class="promise-section">
+              <div class="promise-tag">P R O M I S E</div>
+              <div class="concept-body">「本気」を投げ出さないこと。\n「努力」を決して疑わないこと。\n「幸せ」を心から信じること。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <span>M I N D （01 〜 09）</span>
+          <button class="btn btn-add" onclick="selectRandomCredo()" style="background: linear-gradient(135deg, #FF9800, #F57C00); border: none; font-weight: bold; padding: 6px 14px; border-radius: 16px; font-size: 0.78rem;">
+            🎲 今日のクレドをランダム選択
           </button>
         </div>
+
         <div id="credoGrid" class="credo-grid">
           <!-- JSで自動ロード -->
         </div>
@@ -409,15 +486,15 @@
 
     // クレド（MIND 01〜09）のデータ
     const CREDO_DATA = [
-      { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。\n明るく元気に笑って泣いて怒る人も、みんなから愛される。\n感謝の気持ちを声にすると、やまびこになって返ってくる。\n礼儀とマナーを身につけると、不思議と心もキレイになる。" },
-      { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。\nお客様と誠実に向き合う人は、すべての人と誠実に向き合う。\nお客様の気持ちになって考えることは、自分の心の中を覗いてみることに等しい" },
+      { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。\n明るく時間に笑って泣いて怒る人も、みんなから愛される。\n感謝の気持ちを声にすると、やまびこになって返ってくる。\n礼儀とマナーを身につけると、不思議と心もキレイになる。" },
+      { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。\nお客様と誠実に向き合う人は、すべての人と誠実に向き合う。\nお客様の気持ちになって考えることは、自分の心の中を覗いてみることと同じ。" },
       { no: "03", title: "基本に戻る素直さと勇気。", text: "難しいことができるよりも、当たり前のことをきちんと当たり前にできる方が難しい。\n超えられない壁は、もう一度原点に立ち返ってみつめることで、超えられる壁になる。" },
       { no: "04", title: "仕事を楽しむことの喜びと幸せ。", text: "楽しい仕事を探す人は、仕事を楽しめない。\n辛さや苦しみを乗り越える喜びを知っている人は、仕事を楽しめる。\n自分が幸せでない人は、人を幸せにはできない。" },
       { no: "05", title: "努力は成長となって報われる", text: "もう限界だと心が折れたとき、もう一歩だけ踏み出す強さがあれば、人は常に成長し続けることができる。\n「昔は良かった」と言う人は、自分の人生を自ら否定している。\n努力しない人は過去を振り返り、自分を磨き続ける人は未来を思う。" },
       { no: "06", title: "誇りを持てる仕事に出会えた奇跡。", text: "お客様に「ありがとう」と言われる仕事は、世の中にそれほど多くない。\nいろんな人生と関わる仕事は、大きな責任と覚悟をともなう。\nいろんな人生と関わる仕事だから、大きな喜びと満足があるし、自分の人生も豊かにしてくれる。" },
       { no: "07", title: "「住まい」のもっと先にある感動を。", text: "「ここまでやってくれるのか」と思われる人は、「住まい」というモノを売っているのではなく、「住まい」を超えたいろんなコトを売っている。" },
       { no: "08", title: "競い合いながら助け合える仲間がいる。", text: "競い合いながら一緒に成長できる仲間は、困難にぶつかったとき一緒に乗り越えられる仲間であり、人生のかけがえのない財産になる。" },
-      { no: "09", title: "自分を叶えるための最高の場所。", text: "一度しかない人生でどんな自分を叶えるか。\n自分を自立させ、成長させていくことは、自分がこの世界にとってかけがえのない存在として素敵に生きていることの証しに他ならない。" }
+      { no: "09", title: "自分を叶えるための最高の場所。", text: "一度しかない人生でどんな自分を叶えるか。\n自分を自立させ、成長させていくことは、自分がこの世界にとってかけがえのない存在として素敵に生きていることの証に他ならない。" }
     ];
 
     function getTodayFormattedString() {
