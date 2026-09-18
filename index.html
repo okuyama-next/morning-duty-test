@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>朝礼当番表</title>
+  
+  <!-- 画像ファビコン設定 -->
+  <link rel="icon" href="./favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="./favicon.png">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 16px;
+      color: #333;
+    }
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h1 {
+      font-size: 1.2rem;
+      color: #555;
+      margin: 0;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .sheet-link {
+      font-size: 0.8rem;
+      color: #1d6f42;
+      background-color: #e6f4ea;
+      border: 1px solid #ceead6;
+      padding: 6px 12px;
+      border-radius: 16px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    .sheet-link:hover {
+      background-color: #ceead6;
+    }
+    .icon-btn {
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .icon-btn:hover {
+      background-color: #f0f0f0;
+      transform: rotate(30deg);
+    }
+
+    .undo-bar {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .next-card {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+      margin-bottom: 24px;
+    }
+    .next-card .today-date {
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.15);
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.03em;
+    }
+    .next-card .label { font-size: 0.9rem; opacity: 0.9; }
+    .next-card .name { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+    .next-card .no {
+      font-size: 0.85rem;
+      background: rgba(255,255,255,0.2);
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background-color: #218838;
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-main { padding: 10px 20px; font-size: 0.95rem; display: block; margin: 0 auto; }
+    .btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; }
+    .btn-add { background-color: #007bff; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; box-shadow: none; }
+    .btn-add:hover { background-color: #0056b3; }
+    .btn-delete { background-color: #dc3545; padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; box-shadow: none; }
+    .btn-delete:hover { background-color: #bd2130; }
+    .btn-undo { background-color: #6c757d; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; box-shadow: none; }
+
+    .btn-step {
+      background-color: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: none;
+      font-weight: bold;
+    }
+    .btn-step:hover { background-color: #dee2e6; transform: none; }
+
+    .list-title { font-size: 1rem; margin-bottom: 12px; font-weight: bold; }
+    .member-list { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .member-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid #eee;
+    }
+    .member-item:last-child { border-bottom: none; }
+    .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #007bff; }
+    .member-info { display: flex; align-items: center; gap: 8px; }
+    .member-no { color: #888; font-size: 0.8rem; width: 40px; }
+    .member-name { font-weight: bold; }
+    .member-actions { display: flex; align-items: center; gap: 6px; }
+    
+    .turn-badge {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+      display: inline-block;
+      text-align: center;
+    }
+    .turn-badge.today { background-color: #007bff; color: white; }
+    .turn-badge.soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .turn-badge.normal { background-color: #e9ecef; color: #495057; }
+
+    .loading { text-align: center; padding: 40px; color: #666; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; padding: 16px; box-sizing: border-box;
+      overscroll-behavior: contain;
+    }
+    .modal-content {
+      background: white; width: 100%; max-width: 480px; max-height: 85vh;
+      border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 1.05rem; margin: 0; color: #333; }
+    .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; padding: 0; line-height: 1; }
+    .close-btn:hover { color: #333; }
+    
+    .modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    
+    .admin-card { background: #f8f9fa; padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e9ecef; }
+    .admin-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 10px; }
+    .add-form { display: flex; gap: 8px; }
+    .add-input, .search-input {
+      flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
+    }
+    .add-input:focus, .search-input:focus { border-color: #007bff; }
+    .search-container { margin-bottom: 10px; }
+    .search-input { width: 100%; background: #fff; }
+    .edit-list-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 8px; }
+    
+    .edit-member-list {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #eee; }
+    .edit-member-item:last-child { border-bottom: none; }
+    
+    .edit-controls { display: flex; align-items: center; gap: 6px; }
+    .count-tag { font-size: 0.72rem; color: #666; font-weight: bold; width: 60px; text-align: center; }
+
+    .date-picker-box {
+      margin-top: 12px;
+      padding: 12px;
+      background: #eef5ff;
+      border: 1px solid #b8daff;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .date-picker-box label { font-size: 0.8rem; font-weight: bold; color: #004085; }
+    .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
+    .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <h1>朝礼当番表</h1>
+      </div>
+      <div class="header-actions">
+        <a href="https://docs.google.com/spreadsheets/d/1V-gqaV6i0lAmZU1w_zAHZ0fzGd3etAbHGuGjxpr5SoE/edit?gid=870774158#gid=870774158" target="_blank" rel="noopener noreferrer" class="sheet-link">
+          シートを開く 📊
+        </a>
+        <button class="icon-btn" onclick="openSettingsModal()" title="メンバー管理設定">⚙️</button>
+      </div>
+    </div>
+
+    <!-- 取り消し案内バー -->
+    <div id="undoBar" style="display: none;"></div>
+
+    <div id="app">
+      <div class="loading">データを読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- 設定モーダル -->
+  <div id="settingsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ メンバー管理・設定</h2>
+        <button class="close-btn" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-card">
+          <div class="admin-title">新規メンバー追加</div>
+          <div class="add-form">
+            <input type="text" id="newMemberName" class="add-input" placeholder="氏名を入力（例: 山田 太郎）">
+            <button class="btn btn-add" onclick="addMember()">追加</button>
+          </div>
+        </div>
+
+        <div class="edit-list-title">メンバー管理（回数調整・削除）</div>
+        <div class="search-container">
+          <input type="text" id="searchMemberInput" class="search-input" placeholder="🔍 名前で検索..." oninput="filterMemberList()">
+        </div>
+
+        <!-- 日付指定ポップアップエリア -->
+        <div id="datePickerContainer" style="display: none;"></div>
+
+        <div id="editMemberList" class="edit-member-list">
+          <div class="loading">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzOF3BpKoVZPjGpeNh8Q0lcKZSyahNxEV0aGjA1paG4yRNqu1WPrfgTB8FfDBOT6QU/exec";
+    let globalData = null;
+    let pendingUndoPayload = null;
+    let retryCount = 0;
+
+    function getTodayFormattedString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const date = now.getDate();
+      const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
+      return `${year}年${month}月${date}日(${dayOfWeek})`;
+    }
+
+    // データ取得関数（エラー時の自動リトライ機能を追加）
+    async function fetchDutyData() {
+      try {
+        const response = await fetch(GAS_URL, { redirect: "follow" });
+        
+        // JSON形式で正しく返ってきたか検証
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error("HTML応答エラー（リトライ処理へ）");
+        }
+
+        globalData = data;
+        retryCount = 0; // 成功したらリトライカウントリセット
+        renderUI(data);
+        renderEditList(data);
+
+      } catch (error) {
+        console.warn("データ通信失敗。再試行します:", error);
+        
+        // 最大3回まで自動再試行（リトライ）
+        if (retryCount < 3) {
+          retryCount++;
+          setTimeout(fetchDutyData, 1000); // 1秒後に再アクセス
+        } else {
+          document.getElementById('app').innerHTML = `
+            <div class="loading" style="color: #dc3545;">
+              データの通信に失敗しました。<br>
+              <button class="btn btn-add" style="margin-top:12px;" onclick="retryFetch()">再読み込み</button>
+            </div>`;
+        }
+      } finally {
+        setButtonsDisabled(false);
+      }
+    }
+
+    function retryFetch() {
+      retryCount = 0;
+      document.getElementById('app').innerHTML = '<div class="loading">データを読み込み中...</div>';
+      fetchDutyData();
+    }
+
+    function renderUI(data) {
+      const app = document.getElementById('app');
+      
+      if (!data.list || data.list.length === 0) {
+        app.innerHTML = '<div class="loading">メンバーが登録されていません</div>';
+        return;
+      }
+
+      const todayStr = getTodayFormattedString();
+
+      let html = `
+        <div class="next-card">
+          <div class="today-date">📅 ${todayStr}</div>
+          <div class="label">次の当番予定</div>
+          <div class="name">${data.next.name} さん</div>
+          <div class="no">No. ${data.next.no}</div>
+          <button class="btn btn-main" onclick="submitDuty(${data.next.no}, '${data.next.name}')">本日の朝礼完了</button>
+        </div>
+
+        <div class="list-title">次回以降の朝礼順一覧</div>
+        <div class="member-list">
+      `;
+
+      data.list.forEach((item, index) => {
+        const isNext = index === 0;
+        let badgeText = "";
+        let badgeClass = "normal";
+
+        if (index === 0) {
+          badgeText = "本日";
+          badgeClass = "today";
+        } else if (index === 1) {
+          badgeText = "次回";
+          badgeClass = "soon";
+        } else if (index <= 3) {
+          badgeText = `もうすぐ (${index}営業日後)`;
+          badgeClass = "soon";
+        } else {
+          badgeText = `${index}営業日後`;
+          badgeClass = "normal";
+        }
+
+        html += `
+          <div class="member-item ${isNext ? 'is-next' : ''}">
+            <div class="member-info">
+              <span class="member-no">No.${item.no}</span>
+              <span class="member-name">${item.name}</span>
+            </div>
+            <div class="member-actions">
+              <span class="turn-badge ${badgeClass}">${badgeText}</span>
+              <button class="btn btn-small" onclick="submitDuty(${item.no}, '${item.name}')">完了</button>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      app.innerHTML = html;
+    }
+
+    function renderEditList(data, filterKeyword = "") {
+      const container = document.getElementById('editMemberList');
+      if (!data || !data.list || data.list.length === 0) {
+        container.innerHTML = '<div style="padding:12px;text-align:center;color:#888;">メンバーはいません</div>';
+        return;
+      }
+
+      let sortedList = [...data.list].sort((a, b) => a.no - b.no);
+
+      if (filterKeyword.trim() !== "") {
+        const kw = filterKeyword.trim().toLowerCase();
+        sortedList = sortedList.filter(item => item.name.toLowerCase().includes(kw));
+      }
+
+      if (sortedList.length === 0) {
+        container.innerHTML = '<div style="padding:12px;text-align:center;color:#888;">該当するメンバーが見つかりません</div>';
+        return;
+      }
+
+      let html = "";
+      sortedList.forEach(item => {
+        html += `
+          <div class="edit-member-item">
+            <div class="member-info">
+              <span class="member-no">No.${item.no}</span>
+              <span class="member-name">${item.name}</span>
+            </div>
+            <div class="edit-controls">
+              <span class="count-tag">${item.doneCount || 0}回完了</span>
+              <button class="btn-step" onclick="decrementDuty(${item.no}, '${item.name}')" title="回数を減らす">-</button>
+              <button class="btn-step" onclick="openDatePicker(${item.no}, '${item.name}')" title="日付を指定して回数を増やす">+</button>
+              <button class="btn btn-delete" onclick="deleteMember(${item.no}, '${item.name}')">削除</button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function openDatePicker(no, name) {
+      const box = document.getElementById('datePickerContainer');
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      box.className = "date-picker-box";
+      box.style.display = "flex";
+      box.innerHTML = `
+        <label>📅 ${name} さんの朝礼完了日を選択:</label>
+        <input type="date" id="customDutyDate" class="date-picker-input" value="${todayStr}">
+        <div class="date-picker-actions">
+          <button class="btn btn-undo" onclick="closeDatePicker()">キャンセル</button>
+          <button class="btn btn-add" onclick="submitCustomDuty(${no}, '${name}')">完了記録を追加</button>
+        </div>
+      `;
+    }
+
+    function closeDatePicker() {
+      const box = document.getElementById('datePickerContainer');
+      box.style.display = "none";
+      box.innerHTML = "";
+    }
+
+    async function submitCustomDuty(no, name) {
+      const dateVal = document.getElementById('customDutyDate').value;
+      if (!dateVal) {
+        alert("日付を選択してください。");
+        return;
+      }
+      closeDatePicker();
+      const res = await sendPost({ action: 'complete', targetNo: no, customDate: dateVal });
+      if (res && res.success) {
+        showUndoBar(`${name} さんの完了（${dateVal}）を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
+      }
+    }
+
+    async function decrementDuty(no, name) {
+      if (!confirm(`${name} さんの直近の朝礼完了を取り消し（マイナス）しますか？`)) return;
+      const res = await sendPost({ action: 'decrement', targetNo: no });
+      if (res && res.success) {
+        showUndoBar(`${name} さんの回数を1回減らしました`, { action: 'complete', targetNo: no });
+      }
+    }
+
+    function filterMemberList() {
+      const keyword = document.getElementById('searchMemberInput').value;
+      if (globalData) renderEditList(globalData, keyword);
+    }
+
+    function openSettingsModal() {
+      document.body.classList.add('modal-open');
+      document.getElementById('settingsModal').style.display = 'flex';
+      document.getElementById('searchMemberInput').value = '';
+      closeDatePicker();
+      if (globalData) renderEditList(globalData);
+    }
+
+    function closeSettingsModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('settingsModal').style.display = 'none';
+      closeDatePicker();
+    }
+
+    function setButtonsDisabled(disabled) {
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = disabled);
+    }
+
+    function showUndoBar(text, payload) {
+      pendingUndoPayload = payload;
+      const bar = document.getElementById('undoBar');
+      bar.className = "undo-bar";
+      bar.style.display = "flex";
+      bar.innerHTML = `
+        <span>${text}</span>
+        <button class="btn btn-undo" onclick="executeUndo()">元に戻す ↩</button>
+      `;
+    }
+
+    function hideUndoBar() {
+      pendingUndoPayload = null;
+      const bar = document.getElementById('undoBar');
+      bar.style.display = "none";
+    }
+
+    async function submitDuty(no, name) {
+      if (!confirm(`${name} さんの朝礼完了を記録しますか？\n（スプレッドシートに今日の日付が入力されます）`)) return;
+      
+      const res = await sendPost({ action: 'complete', targetNo: no });
+      if (res && res.success) {
+        showUndoBar(`${name} さんの完了を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
+      }
+    }
+
+    async function addMember() {
+      const input = document.getElementById('newMemberName');
+      const name = input.value.trim();
+      if (!name) {
+        alert("名前を入力してください。");
+        return;
+      }
+      if (!confirm(`${name} さんを新規追加しますか？`)) return;
+
+      const res = await sendPost({ action: 'add', name: name });
+      if (res && res.success) {
+        input.value = '';
+        hideUndoBar();
+      }
+    }
+
+    async function deleteMember(no, name) {
+      if (!confirm(`本当に ${name} さん（No.${no}）を削除しますか？`)) return;
+      
+      const res = await sendPost({ action: 'delete', targetNo: no });
+      if (res && res.success) {
+        showUndoBar(`${name} さんを削除しました`, { 
+          action: 'undo', 
+          undoType: 'delete', 
+          targetNo: no, 
+          name: name,
+          savedDates: res.savedDates || []
+        });
+      }
+    }
+
+    async function executeUndo() {
+      if (!pendingUndoPayload) return;
+      const payload = pendingUndoPayload;
+      hideUndoBar();
+      await sendPost(payload);
+    }
+
+    async function sendPost(payload) {
+      setButtonsDisabled(true);
+
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        fetchDutyData();
+        return result;
+
+      } catch (error) {
+        alert("処理中にエラーが発生しました。");
+        console.error(error);
+        fetchDutyData();
+        return null;
+      } finally {
+        setButtonsDisabled(false);
+      }
+    }
+
+    fetchDutyData();
+  </script>
+</body>
+</html>
