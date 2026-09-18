@@ -287,7 +287,7 @@ function showUndoBar(text, payload) {
 function hideUndoBar() {
   pendingUndoPayload = null;
   const bar = document.getElementById('undoBar');
-  bar.style.display = "none";
+  if (bar) bar.style.display = "none";
 }
 
 async function submitDuty(no, name) {
@@ -315,9 +315,9 @@ async function addMember() {
   }
 }
 
-// ★メンバー削除（2重確認付き ＆ 削除時はUndoバー非表示）★
+// ★メンバー削除（2重確認 ＆ 削除時のUndoバー非表示）★
 async function deleteMember(no, name) {
-  // 1段階目の確認（ポップアップアラート）
+  // 1段階目の確認（ポップアップ警告）
   const firstConfirm = confirm(`【警告】No.${no} ${name} さんを削除しますか？\n※この操作は取り消せません。`);
   if (!firstConfirm) return;
 
@@ -329,9 +329,11 @@ async function deleteMember(no, name) {
     return;
   }
 
-  // 2段階クリア時のみ送信（削除完了時はUndoバーを出さない）
-  hideUndoBar(); // 既存のUndoバーが出ていれば消す
-  const res = await sendPost({ action: 'delete', targetNo: no });
+  // 既存のUndoバーを消去
+  hideUndoBar();
+
+  // 削除リクエスト（isDelete = true でUndoを出さない）
+  const res = await sendPost({ action: 'delete', targetNo: no }, true);
   if (res) {
     alert(`${name} さんを削除しました。`);
   }
@@ -344,7 +346,8 @@ async function executeUndo() {
   await sendPost(payload);
 }
 
-async function sendPost(payload) {
+// 通信処理（isDelete の場合は Undoバーを表示しない）
+async function sendPost(payload, isDelete = false) {
   setButtonsDisabled(true);
 
   try {
@@ -357,6 +360,12 @@ async function sendPost(payload) {
     globalData = result;
     renderUI(result);
     renderEditList(result, document.getElementById('searchMemberInput')?.value || "");
+
+    // 削除処理の時は Undoバーを強制的に出さない
+    if (isDelete) {
+      hideUndoBar();
+    }
+
     return result;
 
   } catch (error) {
