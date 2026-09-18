@@ -100,7 +100,15 @@ function renderUI(data) {
       badgeClass = "normal";
     }
 
-    const memoHtml = item.memo ? `<div style="font-size:12px; color:#555; margin-top:4px;">💬 ${escapeHtml(item.memo)}</div>` : '';
+    // 最新の共有メモを表示
+    let memoText = "";
+    if (item.memos && item.memos.length > 0) {
+      memoText = item.memos[item.memos.length - 1].text;
+    } else if (item.memo) {
+      memoText = item.memo;
+    }
+
+    const memoHtml = memoText ? `<div style="font-size:12px; color:#555; margin-top:4px;">💬 ${escapeHtml(memoText)}</div>` : '';
 
     html += `
       <div class="member-item ${isNext ? 'is-next' : ''}">
@@ -146,9 +154,9 @@ function renderEditList(data, filterKeyword = "") {
   sortedList.forEach(item => {
     html += `
       <div class="edit-member-item">
-        <div class="member-info" onclick="openStandaloneMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" style="cursor:pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+        <div class="member-info" onclick="openStandaloneMemoModal(${item.no})" style="cursor:pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name" style="font-size: 15px; font-weight: 600; color: #1e293b;">${item.name}</span>
+          <span class="member-name">${item.name}</span>
         </div>
         <div class="edit-controls">
           <button class="btn-step" onclick="decrementDuty(${item.no}, '${item.name}')" title="回数を減らす">-</button>
@@ -165,8 +173,11 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/* ★独立したメモ編集画面（専用モーダル）の制御★ */
-function openStandaloneMemoModal(no, name, currentMemo) {
+/* ★独立した専用メモ画面（ストック・追加・編集・削除）★ */
+function openStandaloneMemoModal(targetNo) {
+  const member = globalData?.list?.find(m => m.no === targetNo);
+  if (!member) return;
+
   closeSettingsModal();
 
   let memoModal = document.getElementById('standaloneMemoModal');
@@ -177,20 +188,44 @@ function openStandaloneMemoModal(no, name, currentMemo) {
     document.body.appendChild(memoModal);
   }
 
+  let memos = member.memos || [];
+  if (typeof member.memo === "string" && member.memo.trim() !== "" && memos.length === 0) {
+    memos = [{ id: "old", text: member.memo }];
+  }
+
+  let memoListHtml = "";
+  if (memos.length === 0) {
+    memoListHtml = `<div style="text-align:center; color:#888; font-size:13px; padding:12px;">メモはまだありません</div>`;
+  } else {
+    memos.forEach(m => {
+      memoListHtml += `
+        <div style="background:#f8f9fa; border:1px solid #e2e8f0; border-radius:6px; padding:10px 12px; margin-bottom:8px;">
+          <div style="font-size:13px; color:#333; white-space:pre-wrap; word-break:break-all;">${escapeHtml(m.text)}</div>
+          <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
+            <button class="btn-small" style="padding:2px 8px; font-size:11px;" onclick="promptEditMemo(${member.no}, '${m.id}', '${escapeHtml(m.text)}')">編集</button>
+            <button class="btn-delete" style="padding:2px 8px; font-size:11px;" onclick="confirmDeleteMemo(${member.no}, '${m.id}')">削除</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
   document.body.classList.add('modal-open');
   memoModal.style.display = 'flex';
   memoModal.innerHTML = `
-    <div class="modal-content" style="max-width:400px; width:90%;">
+    <div class="modal-content" style="max-width:420px; width:92%;">
       <div class="modal-header">
-        <h3 class="modal-title">${name} さんの共有メモ</h3>
+        <h3 class="modal-title">${member.name} さんの共有メモ</h3>
         <button class="modal-close" onclick="closeStandaloneMemoModal()">×</button>
       </div>
       <div class="modal-body" style="padding:16px;">
-        <label style="font-size:13px; color:#666; display:block; margin-bottom:8px;">朝礼で共有したい内容・テーマを入力してください：</label>
-        <textarea id="standaloneMemoText" style="width:100%; height:120px; padding:10px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）連絡事項など">${currentMemo}</textarea>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-          <button class="btn btn-undo" onclick="closeStandaloneMemoModal()">キャンセル</button>
-          <button class="btn btn-add" onclick="submitStandaloneMemo(${no}, '${name}')">メモを保存</button>
+        <div style="margin-bottom:16px;">
+          <textarea id="newMemoInput" style="width:100%; height:70px; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）連絡事項など"></textarea>
+          <button class="btn btn-add" style="width:100%; margin-top:8px; padding:8px; font-size:13px;" onclick="submitNewMemo(${member.no})">＋ メモを保存</button>
+        </div>
+        <div style="font-weight:bold; font-size:12px; color:#666; margin-bottom:8px;">保存済みメモ一覧</div>
+        <div style="max-height:180px; overflow-y:auto; padding-right:4px;">
+          ${memoListHtml}
         </div>
       </div>
     </div>
@@ -203,17 +238,35 @@ function closeStandaloneMemoModal() {
   openSettingsModal();
 }
 
-async function submitStandaloneMemo(no, name) {
-  const memoText = document.getElementById('standaloneMemoText').value.trim();
-  
-  const memoModal = document.getElementById('standaloneMemoModal');
-  if (memoModal) memoModal.style.display = 'none';
-
-  const res = await sendPost({ action: 'saveMemo', targetNo: no, memo: memoText });
-  if (res) {
-    alert(`${name} さんのメモを更新しました。`);
+async function submitNewMemo(no) {
+  const text = document.getElementById('newMemoInput').value.trim();
+  if (!text) {
+    alert("メモを入力してください。");
+    return;
   }
-  openSettingsModal();
+  const res = await sendPost({ action: 'addMemo', targetNo: no, text: text });
+  if (res) {
+    openStandaloneMemoModal(no);
+  }
+}
+
+async function promptEditMemo(no, memoId, currentText) {
+  const newText = prompt("メモ内容を編集:", currentText);
+  if (newText !== null && newText.trim() !== "") {
+    const res = await sendPost({ action: 'editMemo', targetNo: no, memoId: memoId, text: newText.trim() });
+    if (res) {
+      openStandaloneMemoModal(no);
+    }
+  }
+}
+
+async function confirmDeleteMemo(no, memoId) {
+  if (confirm("このメモを削除しますか？")) {
+    const res = await sendPost({ action: 'deleteMemo', targetNo: no, memoId: memoId });
+    if (res) {
+      openStandaloneMemoModal(no);
+    }
+  }
 }
 
 /* モーダル・日付指定・完了等の処理 */
