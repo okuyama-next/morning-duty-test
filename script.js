@@ -147,7 +147,7 @@ function renderEditList(data, filterKeyword = "") {
     const memoBadge = item.memo ? '📝' : '✏️';
     html += `
       <div class="edit-member-item">
-        <div class="member-info" style="cursor:pointer;" onclick="openMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" title="タップしてメモを編集">
+        <div class="member-info" style="cursor:pointer;" onclick="openStandaloneMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" title="タップしてメモ画面へ移動">
           <span class="member-no">No.${item.no}</span>
           <span class="member-name" style="text-decoration: underline; color:#0056b3;">${item.name} ${memoBadge}</span>
         </div>
@@ -166,28 +166,57 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/* ★名前タップ時のメモ専用ポップアップ（モーダル）★ */
-function openMemoModal(no, name, currentMemo) {
-  const box = document.getElementById('datePickerContainer');
-  box.className = "date-picker-box";
-  box.style.display = "flex";
-  box.innerHTML = `
-    <label style="font-size:15px; font-weight:bold;">📝 No.${no} ${name} さんの共有メモ</label>
-    <textarea id="memoModalText" style="width:100%; height:80px; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; margin-top:6px;" placeholder="スピーチテーマや共有事項を入力...">${currentMemo}</textarea>
-    <div class="date-picker-actions" style="margin-top:10px;">
-      <button class="btn btn-undo" onclick="closeDatePicker()">キャンセル</button>
-      <button class="btn btn-add" onclick="submitMemoFromModal(${no}, '${name}')">メモを保存</button>
+/* ★独立したメモ編集画面（専用モーダル）の制御★ */
+function openStandaloneMemoModal(no, name, currentMemo) {
+  // 既存の設定モーダルを一度隠す
+  closeSettingsModal();
+
+  let memoModal = document.getElementById('standaloneMemoModal');
+  if (!memoModal) {
+    memoModal = document.createElement('div');
+    memoModal.id = 'standaloneMemoModal';
+    memoModal.className = 'modal-overlay';
+    document.body.appendChild(memoModal);
+  }
+
+  document.body.classList.add('modal-open');
+  memoModal.style.display = 'flex';
+  memoModal.innerHTML = `
+    <div class="modal-content" style="max-width:400px; width:90%;">
+      <div class="modal-header">
+        <h3 class="modal-title">📝 ${name} さんの共有メモ</h3>
+        <button class="modal-close" onclick="closeStandaloneMemoModal()">×</button>
+      </div>
+      <div class="modal-body" style="padding:16px;">
+        <label style="font-size:13px; color:#666; display:block; margin-bottom:8px;">朝礼で共有したい内容・テーマを入力してください：</label>
+        <textarea id="standaloneMemoText" style="width:100%; height:120px; padding:10px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）今日のクレド発表内容、連絡事項など">${currentMemo}</textarea>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+          <button class="btn btn-undo" onclick="closeStandaloneMemoModal()">キャンセル</button>
+          <button class="btn btn-add" onclick="submitStandaloneMemo(${no}, '${name}')">メモを保存</button>
+        </div>
+      </div>
     </div>
   `;
 }
 
-async function submitMemoFromModal(no, name) {
-  const memoText = document.getElementById('memoModalText').value.trim();
-  closeDatePicker();
+function closeStandaloneMemoModal() {
+  const memoModal = document.getElementById('standaloneMemoModal');
+  if (memoModal) memoModal.style.display = 'none';
+  // 設定モーダルに戻る
+  openSettingsModal();
+}
+
+async function submitStandaloneMemo(no, name) {
+  const memoText = document.getElementById('standaloneMemoText').value.trim();
+  
+  const memoModal = document.getElementById('standaloneMemoModal');
+  if (memoModal) memoModal.style.display = 'none';
+
   const res = await sendPost({ action: 'saveMemo', targetNo: no, memo: memoText });
   if (res) {
     alert(`${name} さんのメモを更新しました。`);
   }
+  openSettingsModal();
 }
 
 /* モーダル・日付指定・完了等の処理 */
