@@ -57,10 +57,22 @@
       text-decoration: none;
       font-weight: bold;
       transition: all 0.2s ease;
+      cursor: pointer;
     }
     .sheet-link:hover {
       background-color: #ceead6;
     }
+
+    /* クレド用ボタンのスタイル調整 */
+    .credo-btn {
+      color: #004085;
+      background-color: #e8f0fe;
+      border-color: #b8daff;
+    }
+    .credo-btn:hover {
+      background-color: #d0e1fd;
+    }
+
     .icon-btn {
       background: #ffffff;
       border: 1px solid #ddd;
@@ -197,6 +209,7 @@
 
     .loading { text-align: center; padding: 40px; color: #666; }
 
+    /* モーダル共通スタイル */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -259,6 +272,58 @@
     .date-picker-box label { font-size: 0.8rem; font-weight: bold; color: #004085; }
     .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
     .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
+
+    /* --- クレド専用スタイル --- */
+    .credo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .credo-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 14px 16px;
+      transition: all 0.25 ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .credo-card:hover {
+      border-color: #007bff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    .credo-card.highlight {
+      background: #e8f0fe;
+      border: 2px solid #007bff;
+      box-shadow: 0 4px 14px rgba(0,123,255,0.25);
+    }
+    .credo-no {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #007bff;
+      background: #e8f0fe;
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .credo-card.highlight .credo-no {
+      background: #007bff;
+      color: white;
+    }
+    .credo-title {
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #1a252f;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .credo-text {
+      font-size: 0.8rem;
+      color: #555;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -268,6 +333,8 @@
         <h1>朝礼当番表</h1>
       </div>
       <div class="header-actions">
+        <!-- クレドボタン -->
+        <button class="sheet-link credo-btn" onclick="openCredoModal()">クレド 📖</button>
         <a href="https://docs.google.com/spreadsheets/d/1V-gqaV6i0lAmZU1w_zAHZ0fzGd3etAbHGuGjxpr5SoE/edit?gid=870774158#gid=870774158" target="_blank" rel="noopener noreferrer" class="sheet-link">
           シートを開く 📊
         </a>
@@ -280,6 +347,26 @@
 
     <div id="app">
       <div class="loading">データを読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- クレド表示モーダル -->
+  <div id="credoModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h2>📖 TOHO HOUSE NEXT - MIND</h2>
+        <button class="close-btn" onclick="closeCredoModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn btn-add" onclick="selectRandomCredo()" style="background: linear-gradient(135deg, #FF9800, #F57C00); border: none; font-weight: bold; padding: 10px 18px; border-radius: 20px;">
+            🎲 本日のクレドをランダム選択
+          </button>
+        </div>
+        <div id="credoGrid" class="credo-grid">
+          <!-- JSで自動ロード -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -320,6 +407,19 @@
     let pendingUndoPayload = null;
     let retryCount = 0;
 
+    // クレド（MIND 01〜09）のデータ
+    const CREDO_DATA = [
+      { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。\n明るく時間に笑って泣いて怒る人も、みんなから愛される。\n感謝の気持ちを声にすると、やまびこになって返ってくる。\n礼儀とマナーを身につけると、不思議と心もキレイになる。" },
+      { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。\nお客様と誠実に向き合う人は、すべての人と誠実に向き合う。\nお客様の気持ちになって考えることは、自分の心の中を覗いてみることと同じ。" },
+      { no: "03", title: "基本に戻る素直さと勇気。", text: "難しいことができるよりも、当たり前のことをきちんと当たり前にできる方が難しい。\n超えられない壁は、もう一度原点に立ち返ってみつめることで、超えられる壁になる。" },
+      { no: "04", title: "仕事を楽しむことの喜びと幸せ。", text: "楽しい仕事を探す人は、仕事を楽しめない。\n辛さや苦しみを乗り越える喜びを知っている人は、仕事を楽しめる。\n自分が幸せでない人は、人を幸せにはできない。" },
+      { no: "05", title: "努力は成長となって報われる", text: "もう限界だと心が折れたとき、もう一歩だけ踏み出す強さがあれば、人は常に成長し続けることができる。\n「昔は良かった」と言う人は、自分の人生を自ら否定している。\n努力しない人は過去を振り返り、自分を磨き続ける人は未来を思う。" },
+      { no: "06", title: "誇りを持てる仕事に出会えた奇跡。", text: "お客様に「ありがとう」と言われる仕事は、世の中にそれほど多くない。\nいろんな人生と関わる仕事は、大きな責任と覚悟をともなう。\nいろんな人生と関わる仕事だから、大きな喜びと満足があるし、自分の人生も豊かにしてくれる。" },
+      { no: "07", title: "「住まい」のもっと先にある感動を。", text: "「ここまでやってくれるのか」と思われる人は、「住まい」というモノを売っているのではなく、「住まい」を超えたいろんなコトを売っている。" },
+      { no: "08", title: "競い合いながら助け合える仲間がいる。", text: "競い合いながら一緒に成長できる仲間は、困難にぶつかったとき一緒に乗り越えられる仲間であり、人生のかけがえのない財産になる。" },
+      { no: "09", title: "自分を叶えるための最高の場所。", text: "一度しかない人生でどんな自分を叶えるか。\n自分を自立させ、成長させていくことは、自分がこの世界にとってかけがえのない存在として素敵に生きていることの証に他ならない。" }
+    ];
+
     function getTodayFormattedString() {
       const now = new Date();
       const year = now.getFullYear();
@@ -329,12 +429,10 @@
       return `${year}年${month}月${date}日(${dayOfWeek})`;
     }
 
-    // データ取得関数（エラー時の自動リトライ機能を追加）
     async function fetchDutyData() {
       try {
         const response = await fetch(GAS_URL, { redirect: "follow" });
         
-        // JSON形式で正しく返ってきたか検証
         const text = await response.text();
         let data;
         try {
@@ -344,17 +442,16 @@
         }
 
         globalData = data;
-        retryCount = 0; // 成功したらリトライカウントリセット
+        retryCount = 0;
         renderUI(data);
         renderEditList(data);
 
       } catch (error) {
         console.warn("データ通信失敗。再試行します:", error);
         
-        // 最大3回まで自動再試行（リトライ）
         if (retryCount < 3) {
           retryCount++;
-          setTimeout(fetchDutyData, 1000); // 1秒後に再アクセス
+          setTimeout(fetchDutyData, 1000);
         } else {
           document.getElementById('app').innerHTML = `
             <div class="loading" style="color: #dc3545;">
@@ -472,6 +569,46 @@
       container.innerHTML = html;
     }
 
+    /* --- クレドモーダル関連処理 --- */
+    function renderCredoList() {
+      const container = document.getElementById('credoGrid');
+      let html = "";
+      CREDO_DATA.forEach((item, index) => {
+        html += `
+          <div class="credo-card" id="credoCard-${index}">
+            <div><span class="credo-no">${item.no}</span></div>
+            <div class="credo-title">${item.title}</div>
+            <div class="credo-text">${item.text}</div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function openCredoModal() {
+      document.body.classList.add('modal-open');
+      document.getElementById('credoModal').style.display = 'flex';
+      renderCredoList();
+    }
+
+    function closeCredoModal() {
+      document.body.classList.remove('modal-open');
+      document.getElementById('credoModal').style.display = 'none';
+    }
+
+    function selectRandomCredo() {
+      const cards = document.querySelectorAll('.credo-card');
+      cards.forEach(c => c.classList.remove('highlight'));
+      
+      const randomIndex = Math.floor(Math.random() * CREDO_DATA.length);
+      const targetCard = document.getElementById(`credoCard-${randomIndex}`);
+      if (targetCard) {
+        targetCard.classList.add('highlight');
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    /* --- モーダル・日付指定制御 --- */
     function openDatePicker(no, name) {
       const box = document.getElementById('datePickerContainer');
       const todayStr = new Date().toISOString().split('T')[0];
