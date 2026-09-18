@@ -315,7 +315,7 @@ async function addMember() {
   }
 }
 
-// ★メンバー削除（2重確認：確認ダイアログ＋名前入力チェック）★
+// ★メンバー削除（2重確認付き ＆ 削除時はUndoバー非表示）★
 async function deleteMember(no, name) {
   // 1段階目の確認（ポップアップアラート）
   const firstConfirm = confirm(`【警告】No.${no} ${name} さんを削除しますか？\n※この操作は取り消せません。`);
@@ -329,15 +329,11 @@ async function deleteMember(no, name) {
     return;
   }
 
-  // 2段階クリア時のみ送信
+  // 2段階クリア時のみ送信（削除完了時はUndoバーを出さない）
+  hideUndoBar(); // 既存のUndoバーが出ていれば消す
   const res = await sendPost({ action: 'delete', targetNo: no });
   if (res) {
-    showUndoBar(`${name} さんを削除しました`, { 
-      action: 'undo', 
-      undoType: 'delete', 
-      targetNo: no, 
-      name: name
-    });
+    alert(`${name} さんを削除しました。`);
   }
 }
 
