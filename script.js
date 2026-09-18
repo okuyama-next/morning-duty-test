@@ -1,4 +1,5 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzOF3BpKoVZPjGpeNh8Q0lcKZSyahNxEV0aGjA1paG4yRNqu1WPrfgTB8FfDBOT6QU/exec";
+// 変更後（新しい AWS Lambda の URL）
+const GAS_URL = "https://biv4iouzzt3rqyt2anb472ivv40aggxm.lambda-url.ap-southeast-2.on.aws/";
 let globalData = null;
 let pendingUndoPayload = null;
 let retryCount = 0;
