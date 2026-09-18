@@ -144,12 +144,11 @@ function renderEditList(data, filterKeyword = "") {
 
   let html = "";
   sortedList.forEach(item => {
-    const memoBadge = item.memo ? '📝' : '✏️';
     html += `
       <div class="edit-member-item">
-        <div class="member-info" style="cursor:pointer;" onclick="openStandaloneMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" title="タップしてメモ画面へ移動">
+        <div class="member-info" onclick="openStandaloneMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" style="cursor:pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name" style="text-decoration: underline; color:#0056b3;">${item.name} ${memoBadge}</span>
+          <span class="member-name" style="font-size: 15px; font-weight: 600; color: #1e293b;">${item.name}</span>
         </div>
         <div class="edit-controls">
           <button class="btn-step" onclick="decrementDuty(${item.no}, '${item.name}')" title="回数を減らす">-</button>
