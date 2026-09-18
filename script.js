@@ -1,10 +1,8 @@
-// 変更後（新しい AWS Lambda の URL）
 const GAS_URL = "https://biv4iouzzt3rqyt2anb472ivv40aggxm.lambda-url.ap-southeast-2.on.aws/";
 let globalData = null;
 let pendingUndoPayload = null;
 let retryCount = 0;
 
-// クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
   { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。<br>明るく元気に笑って泣いて怒る人も、みんなから愛される。<br>感謝の気持ちを声にすると、やまびこになって返ってくる。<br>礼儀とマナーを身につけると、不思議と心もキレイになる。" },
   { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。<br>お客様と誠実に向き合う人は、すべての人と誠実に向き合う。<br>お客様の気持ちになって考えることは、自分の心の中を覗いてみることに等しい。" },
@@ -29,14 +27,8 @@ function getTodayFormattedString() {
 async function fetchDutyData() {
   try {
     const response = await fetch(GAS_URL);
-    
     const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error("JSONパースエラー");
-    }
+    let data = JSON.parse(text);
 
     globalData = data;
     retryCount = 0;
@@ -45,7 +37,6 @@ async function fetchDutyData() {
 
   } catch (error) {
     console.warn("データ通信失敗。再試行します:", error);
-    
     if (retryCount < 3) {
       retryCount++;
       setTimeout(fetchDutyData, 1000);
@@ -109,11 +100,16 @@ function renderUI(data) {
       badgeClass = "normal";
     }
 
+    const memoHtml = item.memo ? `<div style="font-size:12px; color:#555; margin-top:4px;">💬 ${escapeHtml(item.memo)}</div>` : '';
+
     html += `
       <div class="member-item ${isNext ? 'is-next' : ''}">
         <div class="member-info">
-          <span class="member-no">No.${item.no}</span>
-          <span class="member-name">${item.name}</span>
+          <div>
+            <span class="member-no">No.${item.no}</span>
+            <span class="member-name">${item.name}</span>
+          </div>
+          ${memoHtml}
         </div>
         <div class="member-actions">
           <span class="turn-badge ${badgeClass}">${badgeText}</span>
@@ -148,14 +144,14 @@ function renderEditList(data, filterKeyword = "") {
 
   let html = "";
   sortedList.forEach(item => {
+    const memoBadge = item.memo ? '📝' : '✏️';
     html += `
       <div class="edit-member-item">
-        <div class="member-info">
+        <div class="member-info" style="cursor:pointer;" onclick="openMemoModal(${item.no}, '${item.name}', '${escapeHtml(item.memo || '')}')" title="タップしてメモを編集">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name">${item.name}</span>
+          <span class="member-name" style="text-decoration: underline; color:#0056b3;">${item.name} ${memoBadge}</span>
         </div>
         <div class="edit-controls">
-          <span class="count-tag">${item.doneCount || 0}回完了</span>
           <button class="btn-step" onclick="decrementDuty(${item.no}, '${item.name}')" title="回数を減らす">-</button>
           <button class="btn-step" onclick="openDatePicker(${item.no}, '${item.name}')" title="日付を指定して回数を増やす">+</button>
           <button class="btn btn-delete" onclick="deleteMember(${item.no}, '${item.name}')">削除</button>
@@ -166,7 +162,35 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
-/* --- クレドモーダル関連処理 --- */
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* ★名前タップ時のメモ専用ポップアップ（モーダル）★ */
+function openMemoModal(no, name, currentMemo) {
+  const box = document.getElementById('datePickerContainer');
+  box.className = "date-picker-box";
+  box.style.display = "flex";
+  box.innerHTML = `
+    <label style="font-size:15px; font-weight:bold;">📝 No.${no} ${name} さんの共有メモ</label>
+    <textarea id="memoModalText" style="width:100%; height:80px; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; margin-top:6px;" placeholder="スピーチテーマや共有事項を入力...">${currentMemo}</textarea>
+    <div class="date-picker-actions" style="margin-top:10px;">
+      <button class="btn btn-undo" onclick="closeDatePicker()">キャンセル</button>
+      <button class="btn btn-add" onclick="submitMemoFromModal(${no}, '${name}')">メモを保存</button>
+    </div>
+  `;
+}
+
+async function submitMemoFromModal(no, name) {
+  const memoText = document.getElementById('memoModalText').value.trim();
+  closeDatePicker();
+  const res = await sendPost({ action: 'saveMemo', targetNo: no, memo: memoText });
+  if (res) {
+    alert(`${name} さんのメモを更新しました。`);
+  }
+}
+
+/* モーダル・日付指定・完了等の処理 */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
   let html = "";
@@ -205,7 +229,6 @@ function selectRandomCredo() {
   }
 }
 
-/* --- モーダル・日付指定制御 --- */
 function openDatePicker(no, name) {
   const box = document.getElementById('datePickerContainer');
   const todayStr = new Date().toISOString().split('T')[0];
@@ -315,13 +338,10 @@ async function addMember() {
   }
 }
 
-// ★メンバー削除（2重確認 ＆ 削除時のUndoバー非表示）★
 async function deleteMember(no, name) {
-  // 1段階目の確認（ポップアップ警告）
   const firstConfirm = confirm(`【警告】No.${no} ${name} さんを削除しますか？\n※この操作は取り消せません。`);
   if (!firstConfirm) return;
 
-  // 2段階目の確認（正確な名前の入力チェック）
   const userInput = prompt(`【最終確認】誤削除を防ぐため、削除対象メンバーの名前を正確に入力してください。\n\n入力する名前: ${name}`);
   
   if (userInput !== name) {
@@ -329,10 +349,8 @@ async function deleteMember(no, name) {
     return;
   }
 
-  // 既存のUndoバーを消去
   hideUndoBar();
 
-  // 削除リクエスト（isDelete = true でUndoを出さない）
   const res = await sendPost({ action: 'delete', targetNo: no }, true);
   if (res) {
     alert(`${name} さんを削除しました。`);
@@ -346,7 +364,6 @@ async function executeUndo() {
   await sendPost(payload);
 }
 
-// 通信処理（isDelete の場合は Undoバーを表示しない）
 async function sendPost(payload, isDelete = false) {
   setButtonsDisabled(true);
 
@@ -361,7 +378,6 @@ async function sendPost(payload, isDelete = false) {
     renderUI(result);
     renderEditList(result, document.getElementById('searchMemberInput')?.value || "");
 
-    // 削除処理の時は Undoバーを強制的に出さない
     if (isDelete) {
       hideUndoBar();
     }
@@ -378,5 +394,4 @@ async function sendPost(payload, isDelete = false) {
   }
 }
 
-// 初期実行
 fetchDutyData();
