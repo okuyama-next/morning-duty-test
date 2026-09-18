@@ -167,7 +167,6 @@ function escapeHtml(str) {
 
 /* ★独立したメモ編集画面（専用モーダル）の制御★ */
 function openStandaloneMemoModal(no, name, currentMemo) {
-  // 既存の設定モーダルを一度隠す
   closeSettingsModal();
 
   let memoModal = document.getElementById('standaloneMemoModal');
@@ -183,12 +182,12 @@ function openStandaloneMemoModal(no, name, currentMemo) {
   memoModal.innerHTML = `
     <div class="modal-content" style="max-width:400px; width:90%;">
       <div class="modal-header">
-        <h3 class="modal-title">📝 ${name} さんの共有メモ</h3>
+        <h3 class="modal-title">${name} さんの共有メモ</h3>
         <button class="modal-close" onclick="closeStandaloneMemoModal()">×</button>
       </div>
       <div class="modal-body" style="padding:16px;">
         <label style="font-size:13px; color:#666; display:block; margin-bottom:8px;">朝礼で共有したい内容・テーマを入力してください：</label>
-        <textarea id="standaloneMemoText" style="width:100%; height:120px; padding:10px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）今日のクレド発表内容、連絡事項など">${currentMemo}</textarea>
+        <textarea id="standaloneMemoText" style="width:100%; height:120px; padding:10px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;" placeholder="（例）連絡事項など">${currentMemo}</textarea>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
           <button class="btn btn-undo" onclick="closeStandaloneMemoModal()">キャンセル</button>
           <button class="btn btn-add" onclick="submitStandaloneMemo(${no}, '${name}')">メモを保存</button>
@@ -201,7 +200,6 @@ function openStandaloneMemoModal(no, name, currentMemo) {
 function closeStandaloneMemoModal() {
   const memoModal = document.getElementById('standaloneMemoModal');
   if (memoModal) memoModal.style.display = 'none';
-  // 設定モーダルに戻る
   openSettingsModal();
 }
 
