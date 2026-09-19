@@ -379,3 +379,80 @@ h1 {
   color: #4a5568;
   line-height: 1.7;
 }
+
+/* --- 個別共有メモ機能のスタイル --- */
+.memo-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.memo-input-container textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit; /* 既存フォントを継承 */
+  font-size: 14px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.memo-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.memo-item {
+  background: #f9f9f9;
+  border-left: 4px solid #4a90e2; /* タイムライン風のワンポイント */
+  padding: 10px 12px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.memo-content {
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.memo-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.memo-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.memo-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.memo-btn-edit {
+  color: #4a90e2;
+}
+
+.memo-btn-delete {
+  color: #e74c3c;
+}
+
+.memo-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
