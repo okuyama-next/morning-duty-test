@@ -281,7 +281,7 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* --- 【スマホ完全対応】1枠・1行目タイトル自動スタイル入力領域 --- */
+/* シンプルテキストエリア仕様 */
 .memo-input-box {
   display: flex;
   flex-direction: column;
@@ -293,44 +293,30 @@ h1 {
   margin-bottom: 16px;
 }
 
-.memo-editable-input {
+.memo-textarea {
   width: 100%;
-  min-height: 80px;
   padding: 10px 12px;
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.6;
-  color: #334155;
+  color: #333;
+  resize: vertical;
   box-sizing: border-box;
   background-color: #fff;
-  outline: none;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
-.memo-editable-input:focus {
-  border-color: #002b66;
-  box-shadow: 0 0 0 3px rgba(0, 43, 102, 0.12);
-}
-
-/* プレースホルダー（入力なし時のうっすら文字） */
-.memo-editable-input:empty::before {
-  content: attr(data-placeholder);
+.memo-textarea::placeholder {
+  font-size: 0.88rem;
   color: #a0aec0;
   opacity: 0.8;
-  font-size: 0.88rem;
-  font-weight: normal;
 }
 
-/* 1行目（タイトル部分）の拡大・太字（iOS対応） */
-.memo-editable-input div:first-child,
-.memo-title-line {
-  font-size: 1.02rem;
-  font-weight: bold;
-  color: #002b66;
+.memo-textarea:focus {
+  outline: none;
+  border-color: #002b66;
+  box-shadow: 0 0 0 3px rgba(0, 43, 102, 0.12);
 }
 
 .memo-input-actions {
@@ -380,7 +366,7 @@ h1 {
 }
 
 .memo-title-preview {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: bold;
   color: #002b66;
   white-space: nowrap;
