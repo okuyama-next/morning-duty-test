@@ -126,7 +126,7 @@
     </div>
   </div>
 
-  <!-- メモ専用モーダル（単一テキストエリア統合型） -->
+  <!-- メモ専用モーダル（1枠・1行目タイトル自動拡大機能） -->
   <div id="memoModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
@@ -134,9 +134,9 @@
         <button class="close-btn" onclick="closeMemoModal()" title="設定画面に戻る">✕</button>
       </div>
       <div class="modal-body">
-        <!-- 単一メモ入力ボックス -->
+        <!-- 1枠・自動タイトル強調入力エリア -->
         <div class="memo-input-box">
-          <textarea id="memoInput" class="memo-textarea" placeholder="（例）連絡事項など" rows="3"></textarea>
+          <div id="memoEditableInput" class="memo-editable-input" contenteditable="true" data-placeholder="（例）連絡事項など"></div>
           <div class="memo-input-actions">
             <button id="saveMemoBtn" class="btn btn-add" onclick="saveMemo()">メモを追加</button>
           </div>
