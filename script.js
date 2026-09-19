@@ -207,15 +207,14 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メモモーダル（アコーディオン型・分離入力）制御 --- */
+/* --- メモモーダル制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
   
   document.getElementById('settingsModal').style.display = 'none';
   document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
-  document.getElementById('memoTitleInput').value = '';
-  document.getElementById('memoBodyInput').value = '';
+  document.getElementById('memoInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   
   renderMemoTimeline();
@@ -295,26 +294,21 @@ function toggleMemoCard(cardId) {
 async function saveMemo() {
   if (currentMemoTargetNo === null) return;
 
-  const titleText = document.getElementById('memoTitleInput').value.trim();
-  const bodyText = document.getElementById('memoBodyInput').value.trim();
-
-  if (!titleText && !bodyText) {
+  const text = document.getElementById('memoInput').value.trim();
+  if (!text) {
     alert('メモ内容を入力してください。');
     return;
   }
 
-  // タイトルと本文を改行で連結して一つのテキストとして保持・送信
-  const fullText = bodyText ? `${titleText}\n${bodyText}` : titleText;
   const targetNo = currentMemoTargetNo;
 
   if (editingMemoId !== null) {
-    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: fullText });
+    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: text });
   } else {
-    await sendPost({ action: 'addMemo', targetNo: targetNo, text: fullText });
+    await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
   }
 
-  document.getElementById('memoTitleInput').value = '';
-  document.getElementById('memoBodyInput').value = '';
+  document.getElementById('memoInput').value = '';
   editingMemoId = null;
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
 
@@ -322,14 +316,9 @@ async function saveMemo() {
   if (globalData) renderEditList(globalData);
 }
 
-function startEditMemo(memoId, currentFullText) {
+function startEditMemo(memoId, currentText) {
   editingMemoId = memoId;
-  const lines = currentFullText.split('\n');
-  const title = lines[0] || '';
-  const body = lines.slice(1).join('\n');
-
-  document.getElementById('memoTitleInput').value = title;
-  document.getElementById('memoBodyInput').value = body;
+  document.getElementById('memoInput').value = currentText;
   document.getElementById('saveMemoBtn').textContent = '変更を保存';
 }
 
@@ -340,8 +329,7 @@ async function deleteMemoItem(memoId) {
 
   if (editingMemoId === memoId) {
     editingMemoId = null;
-    document.getElementById('memoTitleInput').value = '';
-    document.getElementById('memoBodyInput').value = '';
+    document.getElementById('memoInput').value = '';
     document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   }
 
