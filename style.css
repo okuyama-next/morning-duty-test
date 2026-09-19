@@ -246,7 +246,7 @@ h1 {
 
 .edit-controls { display: flex; align-items: center; gap: 6px; }
 
-/* --- 【新デザイン】設定リスト内のメンバー名ボタン（アイコン・バッジ廃止） --- */
+/* 設定リスト内メンバー名ボタン */
 .member-name-clickable {
   cursor: pointer;
   background-color: #f8fafc;
@@ -265,7 +265,7 @@ h1 {
   border-color: #002b66;
 }
 
-/* --- 日付指定ポップアップスタイル --- */
+/* 日付指定ポップアップスタイル */
 .date-picker-box {
   margin-top: 12px;
   padding: 12px;
@@ -280,7 +280,7 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* --- アコーディオン型（タイトルタップ展開）メモスタイル --- */
+/* アコーディオン型メモスタイル */
 .memo-input-box {
   display: flex;
   flex-direction: column;
@@ -291,6 +291,8 @@ h1 {
   border: 1px solid #e9ecef;
   margin-bottom: 16px;
 }
+
+/* メモ入力欄：1行目（タイトル）を強調表示 */
 .memo-textarea {
   width: 100%;
   padding: 10px 12px;
@@ -298,17 +300,23 @@ h1 {
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #333;
   resize: vertical;
   box-sizing: border-box;
   background-color: #fff;
+}
+.memo-textarea::first-line {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #002b66;
 }
 .memo-textarea:focus {
   outline: none;
   border-color: #002b66;
   box-shadow: 0 0 0 3px rgba(0, 43, 102, 0.12);
 }
+
 .memo-input-actions {
   display: flex;
   justify-content: flex-end;
@@ -359,7 +367,7 @@ h1 {
 }
 
 .memo-title-preview {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: bold;
   color: #002b66;
   white-space: nowrap;
@@ -421,7 +429,7 @@ h1 {
 .memo-card-btn.edit { color: #0056b3; background-color: #e8f0fe; }
 .memo-card-btn.delete { color: #dc3545; background-color: #fde8e8; }
 
-/* --- クレドスタイル --- */
+/* クレドスタイル */
 .hero-concept {
   display: flex;
   flex-direction: column;
