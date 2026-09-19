@@ -128,7 +128,7 @@ function renderUI(data) {
   app.innerHTML = html;
 }
 
-/* --- 設定リスト内メンバー名描画（バッジ・アイコンなし） --- */
+/* --- 設定リスト内メンバー名描画 --- */
 function renderEditList(data, filterKeyword = "") {
   const container = document.getElementById('editMemberList');
   if (!data || !data.list || data.list.length === 0) {
@@ -208,7 +208,7 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メモモーダル（アコーディオン型・1行目タイトル化・2行目以降本文化）制御 --- */
+/* --- メモモーダル（アコーディオン型・日付のみ表示）制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
@@ -257,7 +257,11 @@ function renderMemoTimeline() {
     const titlePreview = lines[0].trim() || '無題のメモ';
     const bodyText = lines.slice(1).join('\n').trim();
 
-    const formattedDate = memo.date || '日時不明';
+    // 日時文字列から時間を切り捨てて「日付のみ（例: 9/19）」にする処理
+    let formattedDate = memo.date || '';
+    if (formattedDate.includes(' ')) {
+      formattedDate = formattedDate.split(' ')[0];
+    }
 
     const bodyHtml = bodyText !== '' 
       ? `<div class="memo-full-text">${escapeHtml(bodyText)}</div>`
