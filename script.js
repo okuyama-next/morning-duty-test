@@ -214,9 +214,7 @@ function openMemoModal(no, name) {
   
   document.getElementById('settingsModal').style.display = 'none';
   document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
-  
-  const inputEl = document.getElementById('memoEditableInput');
-  inputEl.innerText = '';
+  document.getElementById('memoInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   
   renderMemoTimeline();
@@ -296,9 +294,7 @@ function toggleMemoCard(cardId) {
 async function saveMemo() {
   if (currentMemoTargetNo === null) return;
 
-  const inputEl = document.getElementById('memoEditableInput');
-  const text = inputEl.innerText.trim();
-
+  const text = document.getElementById('memoInput').value.trim();
   if (!text) {
     alert('メモ内容を入力してください。');
     return;
@@ -312,7 +308,7 @@ async function saveMemo() {
     await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
   }
 
-  inputEl.innerText = '';
+  document.getElementById('memoInput').value = '';
   editingMemoId = null;
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
 
@@ -322,9 +318,7 @@ async function saveMemo() {
 
 function startEditMemo(memoId, currentText) {
   editingMemoId = memoId;
-  const inputEl = document.getElementById('memoEditableInput');
-  inputEl.innerText = currentText;
-  formatEditableInput(inputEl);
+  document.getElementById('memoInput').value = currentText;
   document.getElementById('saveMemoBtn').textContent = '変更を保存';
 }
 
@@ -335,37 +329,12 @@ async function deleteMemoItem(memoId) {
 
   if (editingMemoId === memoId) {
     editingMemoId = null;
-    document.getElementById('memoEditableInput').innerText = '';
+    document.getElementById('memoInput').value = '';
     document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   }
 
   renderMemoTimeline();
   if (globalData) renderEditList(globalData);
-}
-
-/* 入力完了時（フォーカスが外れたタイミング）で1行目を強調装飾 */
-document.addEventListener('DOMContentLoaded', () => {
-  const editableInput = document.getElementById('memoEditableInput');
-  if (editableInput) {
-    editableInput.addEventListener('blur', () => {
-      formatEditableInput(editableInput);
-    });
-  }
-});
-
-function formatEditableInput(element) {
-  const rawText = element.innerText.trim();
-  if (!rawText) return;
-
-  const lines = rawText.split('\n');
-  const titleText = lines[0];
-  const restText = lines.slice(1).join('\n');
-  
-  let html = `<div class="memo-title-line">${escapeHtml(titleText)}</div>`;
-  if (restText !== '') {
-    html += `<div>${escapeHtml(restText).replace(/\n/g, '<br>')}</div>`;
-  }
-  element.innerHTML = html;
 }
 
 // ヘルパー関数
