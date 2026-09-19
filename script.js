@@ -3,6 +3,7 @@ let globalData = null;
 let pendingUndoPayload = null;
 let retryCount = 0;
 let currentMemoTargetNo = null;
+let editingMemoId = null;
 
 // クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
@@ -148,14 +149,14 @@ function renderEditList(data, filterKeyword = "") {
 
   let html = "";
   sortedList.forEach(item => {
-    const hasMemo = item.memo && item.memo.trim() !== "";
+    const hasMemo = (item.memos && item.memos.length > 0) || (item.memo && item.memo.trim() !== "");
     const memoBadge = hasMemo ? `<span class="memo-badge">メモあり</span>` : '';
 
     html += `
       <div class="edit-member-item">
         <div class="member-info">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてマイページを開く">
+          <span class="member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを表示">
             ${item.name} 📝 ${memoBadge}
           </span>
         </div>
@@ -209,64 +210,133 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メンバー個別マイページ（メモ）モーダル制御 --- */
+/* --- メモモーダル（iPhone風蓄積型）制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
+  editingMemoId = null;
   
-  // 設定モーダルは非表示にする（閉じるのではなく隠す）
   document.getElementById('settingsModal').style.display = 'none';
-
-  // マイページの基本情報をセット
-  document.getElementById('memoModalTitle').textContent = `👤 ${name} さんのマイページ`;
-  document.getElementById('memoMemberName').textContent = `${name} さん`;
-  document.getElementById('memoMemberNo').textContent = `当番 No. ${no}`;
+  document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
+  document.getElementById('memoInput').value = '';
+  document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   
-  // 保存されているメモテキストを取得してテキストエリアにセット
-  let memoText = "";
-  if (globalData && globalData.list) {
-    const member = globalData.list.find(m => m.no === no);
-    if (member && member.memo) {
-      memoText = member.memo;
-    }
-  }
-  
-  document.getElementById('memoInput').value = memoText;
-  
-  // マイページモーダルを表示
+  renderMemoTimeline();
   document.getElementById('memoModal').style.display = 'flex';
 }
 
 function closeMemoModal() {
-  // マイページモーダルを非表示
   document.getElementById('memoModal').style.display = 'none';
   currentMemoTargetNo = null;
-
-  // 設定モーダルを再表示（元の画面に戻る）
+  editingMemoId = null;
   document.getElementById('settingsModal').style.display = 'flex';
+}
+
+function renderMemoTimeline() {
+  const timelineEl = document.getElementById('memoTimeline');
+  timelineEl.innerHTML = '';
+
+  if (!globalData || !globalData.list) return;
+  const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
+  if (!member) return;
+
+  // 互換性保持: 古い単一memoがあればmemos配列に変換して扱う
+  let memoList = member.memos ? [...member.memos] : [];
+  if (member.memo && member.memo.trim() !== "" && memoList.length === 0) {
+    memoList = [{ id: "legacy-1", text: member.memo, date: "以前のメモ" }];
+  }
+
+  if (memoList.length === 0) {
+    timelineEl.innerHTML = '<p style="color: #a0aec0; font-size: 0.82rem; text-align: center; margin: 20px 0;">メモはまだありません。</p>';
+    return;
+  }
+
+  // 新しい順にソートして表示
+  memoList.reverse().forEach((memo) => {
+    const card = document.createElement('div');
+    card.className = 'memo-card';
+    
+    const formattedDate = memo.date || '日時不明';
+    const escapedText = escapeHtml(memo.text);
+
+    card.innerHTML = `
+      <div class="memo-card-text">${escapedText}</div>
+      <div class="memo-card-footer">
+        <span>🕒 ${formattedDate}</span>
+        <div class="memo-card-actions">
+          <button class="memo-card-btn edit" onclick="startEditMemo('${memo.id}', \`${escapeJsString(memo.text)}\`)">編集</button>
+          <button class="memo-card-btn delete" onclick="deleteMemoItem('${memo.id}')">削除</button>
+        </div>
+      </div>
+    `;
+    timelineEl.appendChild(card);
+  });
 }
 
 async function saveMemo() {
   if (currentMemoTargetNo === null) return;
 
-  const memoText = document.getElementById('memoInput').value.trim();
-  const targetNo = currentMemoTargetNo;
-
-  // ローカルデータを即時更新
-  if (globalData && globalData.list) {
-    const member = globalData.list.find(m => m.no === targetNo);
-    if (member) {
-      member.memo = memoText;
-    }
+  const text = document.getElementById('memoInput').value.trim();
+  if (!text) {
+    alert('メモ内容を入力してください。');
+    return;
   }
 
-  // 設定リストのバッジ表示等を再描画
+  const targetNo = currentMemoTargetNo;
+
+  if (editingMemoId !== null) {
+    // 編集更新
+    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: text });
+  } else {
+    // 新規追加
+    await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
+  }
+
+  document.getElementById('memoInput').value = '';
+  editingMemoId = null;
+  document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+
+  renderMemoTimeline();
   if (globalData) renderEditList(globalData);
+}
 
-  // バックエンドへ保存リクエスト送信
-  await sendPost({ action: 'saveMemo', targetNo: targetNo, memo: memoText });
+function startEditMemo(memoId, currentText) {
+  editingMemoId = memoId;
+  document.getElementById('memoInput').value = currentText;
+  document.getElementById('saveMemoBtn').textContent = '変更を保存';
+}
 
-  // 設定画面に戻る
-  closeMemoModal();
+async function deleteMemoItem(memoId) {
+  if (!confirm('このメモを削除しますか？')) return;
+
+  await sendPost({ action: 'deleteMemo', targetNo: currentMemoTargetNo, memoId: memoId });
+
+  if (editingMemoId === memoId) {
+    editingMemoId = null;
+    document.getElementById('memoInput').value = '';
+    document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+  }
+
+  renderMemoTimeline();
+  if (globalData) renderEditList(globalData);
+}
+
+// ヘルパー関数
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeJsString(str) {
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$/g, '\\$')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"');
 }
 
 /* --- モーダル・日付指定制御 --- */
@@ -411,7 +481,9 @@ async function sendPost(payload) {
     });
 
     const result = await response.json();
-    fetchDutyData();
+    globalData = result; // APIが返す最新データをグローバル保持
+    renderUI(result);
+    renderEditList(result);
     return result;
 
   } catch (error) {
