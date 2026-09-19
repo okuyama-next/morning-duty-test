@@ -128,7 +128,7 @@ function renderUI(data) {
   app.innerHTML = html;
 }
 
-/* --- 設定リスト内メンバー名描画（アイコン・バッジ廃止） --- */
+/* --- 設定リスト内メンバー名描画（バッジ・アイコンなし） --- */
 function renderEditList(data, filterKeyword = "") {
   const container = document.getElementById('editMemberList');
   if (!data || !data.list || data.list.length === 0) {
@@ -208,7 +208,7 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メモモーダル（アコーディオン型・タイトルタップ展開）制御 --- */
+/* --- メモモーダル（アコーディオン型・1行目タイトル化・2行目以降本文化）制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
@@ -247,15 +247,21 @@ function renderMemoTimeline() {
     return;
   }
 
-  memoList.reverse().forEach((memo, index) => {
+  memoList.reverse().forEach((memo) => {
     const card = document.createElement('div');
     card.className = 'memo-accordion-card';
     card.id = `memoCard-${memo.id}`;
 
+    // 改行で分割（1行目をタイトル、2行目以降を本文とする）
     const lines = memo.text.split('\n');
     const titlePreview = lines[0].trim() || '無題のメモ';
+    const bodyText = lines.slice(1).join('\n').trim();
+
     const formattedDate = memo.date || '日時不明';
-    const escapedText = escapeHtml(memo.text);
+
+    const bodyHtml = bodyText !== '' 
+      ? `<div class="memo-full-text">${escapeHtml(bodyText)}</div>`
+      : `<div class="memo-full-text" style="color: #94a3b8; font-style: italic; font-size: 0.8rem;">（詳細テキストなし）</div>`;
 
     card.innerHTML = `
       <div class="memo-accordion-header" onclick="toggleMemoCard('memoCard-${memo.id}')">
@@ -266,7 +272,7 @@ function renderMemoTimeline() {
         </div>
       </div>
       <div class="memo-accordion-body">
-        <div class="memo-full-text">${escapedText}</div>
+        ${bodyHtml}
         <div class="memo-card-actions">
           <button class="memo-card-btn edit" onclick="startEditMemo('${memo.id}', \`${escapeJsString(memo.text)}\`)">編集</button>
           <button class="memo-card-btn delete" onclick="deleteMemoItem('${memo.id}')">削除</button>
