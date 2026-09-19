@@ -155,7 +155,7 @@ function renderEditList(data, filterKeyword = "") {
       <div class="edit-member-item">
         <div class="member-info">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを編集">
+          <span class="member-name member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてマイページを開く">
             ${item.name} 📝 ${memoBadge}
           </span>
         </div>
@@ -209,17 +209,19 @@ function selectRandomCredo() {
   }
 }
 
-/* --- 個別共有メモモーダル（1ユーザー1メモ）制御 --- */
+/* --- メンバー個別マイページ（メモ）モーダル制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   
-  // 設定モーダルを閉じる
-  closeSettingsModal();
+  // 設定モーダルは非表示にする（閉じるのではなく隠す）
+  document.getElementById('settingsModal').style.display = 'none';
 
-  // モーダルのタイトルを更新
-  document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
+  // マイページの基本情報をセット
+  document.getElementById('memoModalTitle').textContent = `👤 ${name} さんのマイページ`;
+  document.getElementById('memoMemberName').textContent = `${name} さん`;
+  document.getElementById('memoMemberNo').textContent = `当番 No. ${no}`;
   
-  // 対象メンバーの現在のメモテキストを取得して表示
+  // 保存されているメモテキストを取得してテキストエリアにセット
   let memoText = "";
   if (globalData && globalData.list) {
     const member = globalData.list.find(m => m.no === no);
@@ -230,15 +232,17 @@ function openMemoModal(no, name) {
   
   document.getElementById('memoInput').value = memoText;
   
-  // メモモーダルを開く
-  document.body.classList.add('modal-open');
+  // マイページモーダルを表示
   document.getElementById('memoModal').style.display = 'flex';
 }
 
 function closeMemoModal() {
-  document.body.classList.remove('modal-open');
+  // マイページモーダルを非表示
   document.getElementById('memoModal').style.display = 'none';
   currentMemoTargetNo = null;
+
+  // 設定モーダルを再表示（元の画面に戻る）
+  document.getElementById('settingsModal').style.display = 'flex';
 }
 
 async function saveMemo() {
@@ -247,7 +251,7 @@ async function saveMemo() {
   const memoText = document.getElementById('memoInput').value.trim();
   const targetNo = currentMemoTargetNo;
 
-  // ローカルデータを更新
+  // ローカルデータを即時更新
   if (globalData && globalData.list) {
     const member = globalData.list.find(m => m.no === targetNo);
     if (member) {
@@ -255,18 +259,14 @@ async function saveMemo() {
     }
   }
 
-  // API送信（Backend連携）
+  // 設定リストのバッジ表示等を再描画
+  if (globalData) renderEditList(globalData);
+
+  // バックエンドへ保存リクエスト送信
   await sendPost({ action: 'saveMemo', targetNo: targetNo, memo: memoText });
 
+  // 設定画面に戻る
   closeMemoModal();
-}
-
-async function deleteMemo() {
-  if (currentMemoTargetNo === null) return;
-  if (!confirm("このメモを消去しますか？")) return;
-
-  document.getElementById('memoInput').value = "";
-  await saveMemo();
 }
 
 /* --- モーダル・日付指定制御 --- */
