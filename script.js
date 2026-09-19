@@ -219,7 +219,141 @@ function openDatePicker(no, name) {
     </div>
   `;
 }
+let currentMemoMemberId = null;
+let editingMemoIndex = null;
 
+// 設定モーダル内のメンバータップ時イベント
+function openMemoModal(memberId, memberName) {
+  currentMemoMemberId = memberId;
+  editingMemoIndex = null;
+  
+  // 設定モーダルを閉じる
+  closeSettingsModal();
+  
+  // モーダルタイトルの設定
+  document.getElementById('memoModalTitle').textContent = `${memberName} さんのメモ`;
+  document.getElementById('memoInput').value = '';
+  document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+
+  // タイムラインの再描画
+  renderMemoTimeline();
+  
+  // メモモーダルを開く
+  document.getElementById('memoModal').style.display = 'block';
+}
+
+function closeMemoModal() {
+  document.getElementById('memoModal').style.display = 'none';
+  currentMemoMemberId = null;
+  editingMemoIndex = null;
+}
+
+// タイムライン描画処理
+function renderMemoTimeline() {
+  const timelineEl = document.getElementById('memoTimeline');
+  timelineEl.innerHTML = '';
+
+  const member = members.find(m => m.id === currentMemoMemberId);
+  const memoList = (member && member.memos) ? member.memos : [];
+
+  if (memoList.length === 0) {
+    timelineEl.innerHTML = '<p style="color: #999; font-size: 13px; text-align: center;">メモはまだありません。</p>';
+    return;
+  }
+
+  memoList.forEach((memo, index) => {
+    const item = document.createElement('div');
+    item.className = 'memo-item';
+    item.innerHTML = `
+      <div class="memo-content">${escapeHtml(memo.text)}</div>
+      <div class="memo-date">${memo.updatedAt || memo.createdAt}</div>
+      <div class="memo-actions">
+        <button class="memo-btn memo-btn-edit" onclick="editMemo(${index})">編集</button>
+        <button class="memo-btn memo-btn-delete" onclick="deleteMemo(${index})">削除</button>
+      </div>
+    `;
+    timelineEl.appendChild(item);
+  });
+}
+
+// メモの保存（新規追加・更新）
+async function saveMemo() {
+  const inputEl = document.getElementById('memoInput');
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  const member = members.find(m => m.id === currentMemoMemberId);
+  if (!member) return;
+
+  if (!member.memos) {
+    member.memos = [];
+  }
+
+  const now = new Date().toLocaleString('ja-JP');
+
+  if (editingMemoIndex !== null) {
+    // 編集更新
+    member.memos[editingMemoIndex].text = text;
+    member.memos[editingMemoIndex].updatedAt = now;
+  } else {
+    // 新規追加（新しいものが上に来るようunshift）
+    member.memos.unshift({
+      text: text,
+      createdAt: now
+    });
+  }
+
+  // TODO: DynamoDB/API（morning-duty-test）へ保存リクエストを送信する処理をここに呼び出します
+
+  inputEl.value = '';
+  editingMemoIndex = null;
+  document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+  
+  renderMemoTimeline();
+}
+
+// メモ編集モード切り替え
+function editMemo(index) {
+  const member = members.find(m => m.id === currentMemoMemberId);
+  if (!member || !member.memos[index]) return;
+
+  editingMemoIndex = index;
+  document.getElementById('memoInput').value = member.memos[index].text;
+  document.getElementById('saveMemoBtn').textContent = '変更を保存';
+}
+
+// メモ削除
+async function deleteMemo(index) {
+  if (!confirm('このメモを削除しますか？')) return;
+
+  const member = members.find(m => m.id === currentMemoMemberId);
+  if (!member || !member.memos) return;
+
+  member.memos.splice(index, 1);
+
+  // TODO: DynamoDB/API（morning-duty-test）へ保存リクエストを送信
+
+  if (editingMemoIndex === index) {
+    editingMemoIndex = null;
+    document.getElementById('memoInput').value = '';
+    document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+  }
+
+  renderMemoTimeline();
+}
+
+// HTMLエスケープヘルパー関数
+function escapeHtml(str) {
+  return str.replace(/[&< me"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[m];
+  });
+}
 function closeDatePicker() {
   const box = document.getElementById('datePickerContainer');
   box.style.display = "none";
