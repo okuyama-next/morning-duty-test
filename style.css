@@ -232,7 +232,6 @@ h1 {
 .search-container { margin-bottom: 10px; }
 .search-input { width: 100%; background: #fff; }
 .edit-list-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 4px; }
-.edit-list-subnote { font-size: 0.75rem; color: #666; margin: 0 0 10px 0; }
 
 .edit-member-list {
   background: white;
@@ -247,34 +246,23 @@ h1 {
 
 .edit-controls { display: flex; align-items: center; gap: 6px; }
 
-/* --- 【洗練版】設定リスト内メンバー名ボタンデザイン（2枚目画像の改善） --- */
+/* --- 【新デザイン】設定リスト内のメンバー名ボタン（アイコン・バッジ廃止） --- */
 .member-name-clickable {
   cursor: pointer;
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   color: #002b66;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.92rem;
   font-weight: bold;
   border: 1px solid #cbd5e1;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
 }
 .member-name-clickable:hover {
   background-color: #e2e8f0;
   border-color: #002b66;
-}
-
-.memo-badge {
-  font-size: 0.68rem;
-  background-color: #002b66;
-  color: #ffffff;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: normal;
-  letter-spacing: 0.02em;
 }
 
 /* --- 日付指定ポップアップスタイル --- */
@@ -292,7 +280,7 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* --- 【iPhoneメモ風】蓄積型メモ用スタイル --- */
+/* --- アコーディオン型（タイトルタップ展開）メモスタイル --- */
 .memo-input-box {
   display: flex;
   flex-direction: column;
@@ -338,53 +326,100 @@ h1 {
 .memo-timeline {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 260px;
+  gap: 8px;
+  max-height: 280px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-.memo-card {
+/* アコーディオン型カード */
+.memo-accordion-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-left: 4px solid #002b66;
-  border-radius: 6px;
-  padding: 10px 12px;
+  border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: border-color 0.2s ease;
+}
+.memo-accordion-card.active {
+  border-color: #002b66;
 }
 
-.memo-card-text {
-  font-size: 0.88rem;
-  color: #2d3748;
-  white-space: pre-wrap;
-  word-break: break-all;
-  line-height: 1.5;
-  margin-bottom: 6px;
-}
-
-.memo-card-footer {
+.memo-accordion-header {
+  padding: 10px 14px;
+  background: #f8fafc;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.memo-accordion-header:hover {
+  background: #f1f5f9;
+}
+
+.memo-title-preview {
+  font-size: 0.88rem;
+  font-weight: bold;
+  color: #002b66;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.memo-date-tag {
   font-size: 0.72rem;
-  color: #a0aec0;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.memo-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+.memo-accordion-card.active .memo-arrow {
+  transform: rotate(180deg);
+}
+
+.memo-accordion-body {
+  display: none;
+  padding: 12px 14px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+.memo-accordion-card.active .memo-accordion-body {
+  display: block;
+}
+
+.memo-full-text {
+  font-size: 0.88rem;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+  margin-bottom: 10px;
 }
 
 .memo-card-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .memo-card-btn {
   background: none;
   border: none;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 6px;
   font-weight: bold;
+  border-radius: 4px;
 }
-.memo-card-btn.edit { color: #0056b3; }
-.memo-card-btn.delete { color: #dc3545; }
+.memo-card-btn.edit { color: #0056b3; background-color: #e8f0fe; }
+.memo-card-btn.delete { color: #dc3545; background-color: #fde8e8; }
 
 /* --- クレドスタイル --- */
 .hero-concept {
