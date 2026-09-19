@@ -128,6 +128,7 @@ function renderUI(data) {
   app.innerHTML = html;
 }
 
+/* --- 設定リスト内メンバー名描画（アイコン・バッジ廃止） --- */
 function renderEditList(data, filterKeyword = "") {
   const container = document.getElementById('editMemberList');
   if (!data || !data.list || data.list.length === 0) {
@@ -149,15 +150,12 @@ function renderEditList(data, filterKeyword = "") {
 
   let html = "";
   sortedList.forEach(item => {
-    const hasMemo = (item.memos && item.memos.length > 0) || (item.memo && item.memo.trim() !== "");
-    const memoBadge = hasMemo ? `<span class="memo-badge">メモあり</span>` : '';
-
     html += `
       <div class="edit-member-item">
         <div class="member-info">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを表示">
-            ${item.name} 📝 ${memoBadge}
+          <span class="member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを開く">
+            ${item.name}
           </span>
         </div>
         <div class="edit-controls">
@@ -210,7 +208,7 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メモモーダル（iPhone風蓄積型）制御 --- */
+/* --- メモモーダル（アコーディオン型・タイトルタップ展開）制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
@@ -239,7 +237,6 @@ function renderMemoTimeline() {
   const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
   if (!member) return;
 
-  // 互換性保持: 古い単一memoがあればmemos配列に変換して扱う
   let memoList = member.memos ? [...member.memos] : [];
   if (member.memo && member.memo.trim() !== "" && memoList.length === 0) {
     memoList = [{ id: "legacy-1", text: member.memo, date: "以前のメモ" }];
@@ -250,18 +247,26 @@ function renderMemoTimeline() {
     return;
   }
 
-  // 新しい順にソートして表示
-  memoList.reverse().forEach((memo) => {
+  memoList.reverse().forEach((memo, index) => {
     const card = document.createElement('div');
-    card.className = 'memo-card';
-    
+    card.className = 'memo-accordion-card';
+    card.id = `memoCard-${memo.id}`;
+
+    const lines = memo.text.split('\n');
+    const titlePreview = lines[0].trim() || '無題のメモ';
     const formattedDate = memo.date || '日時不明';
     const escapedText = escapeHtml(memo.text);
 
     card.innerHTML = `
-      <div class="memo-card-text">${escapedText}</div>
-      <div class="memo-card-footer">
-        <span>🕒 ${formattedDate}</span>
+      <div class="memo-accordion-header" onclick="toggleMemoCard('memoCard-${memo.id}')">
+        <div class="memo-title-preview">📌 ${escapeHtml(titlePreview)}</div>
+        <div class="memo-date-tag">
+          <span>${formattedDate}</span>
+          <span class="memo-arrow">▼</span>
+        </div>
+      </div>
+      <div class="memo-accordion-body">
+        <div class="memo-full-text">${escapedText}</div>
         <div class="memo-card-actions">
           <button class="memo-card-btn edit" onclick="startEditMemo('${memo.id}', \`${escapeJsString(memo.text)}\`)">編集</button>
           <button class="memo-card-btn delete" onclick="deleteMemoItem('${memo.id}')">削除</button>
@@ -270,6 +275,13 @@ function renderMemoTimeline() {
     `;
     timelineEl.appendChild(card);
   });
+}
+
+function toggleMemoCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (card) {
+    card.classList.toggle('active');
+  }
 }
 
 async function saveMemo() {
@@ -284,10 +296,8 @@ async function saveMemo() {
   const targetNo = currentMemoTargetNo;
 
   if (editingMemoId !== null) {
-    // 編集更新
     await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: text });
   } else {
-    // 新規追加
     await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
   }
 
@@ -481,7 +491,7 @@ async function sendPost(payload) {
     });
 
     const result = await response.json();
-    globalData = result; // APIが返す最新データをグローバル保持
+    globalData = result;
     renderUI(result);
     renderEditList(result);
     return result;
