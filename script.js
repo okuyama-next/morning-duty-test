@@ -5,6 +5,10 @@ let retryCount = 0;
 let currentMemoTargetNo = null;
 let editingMemoId = null;
 
+// 音声録音管理用変数
+let mediaRecorder = null;
+let audioChunks = [];
+
 // クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
   { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。<br>明るく元気に笑って泣いて怒る人も、みんなから愛される。<br>感謝の気持ちを声にすると、やまびこになって返ってくる。<br>礼儀とマナーを身につけると、不思議と心もキレイになる。" },
@@ -217,15 +221,112 @@ function openMemoModal(no, name) {
   document.getElementById('memoInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   
+  resetAudioUI();
+
   renderMemoTimeline();
   document.getElementById('memoModal').style.display = 'flex';
 }
 
 function closeMemoModal() {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
   document.getElementById('memoModal').style.display = 'none';
   currentMemoTargetNo = null;
   editingMemoId = null;
   document.getElementById('settingsModal').style.display = 'flex';
+}
+
+/* --- 音声録音・送信機能 --- */
+function resetAudioUI() {
+  document.getElementById('startRecordBtn').style.display = 'inline-block';
+  document.getElementById('stopRecordBtn').style.display = 'none';
+  document.getElementById('recordStatusText').textContent = 'ボタンを押して朝礼の録音を開始できます';
+  document.getElementById('recordStatusText').style.color = '#4a5568';
+  audioChunks = [];
+}
+
+async function startAudioRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = event => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      await processAndSendAudio(audioBlob);
+    };
+
+    mediaRecorder.start();
+    document.getElementById('startRecordBtn').style.display = 'none';
+    document.getElementById('stopRecordBtn').style.display = 'inline-block';
+    document.getElementById('recordStatusText').textContent = '🔴 録音中... 話し終わったら停止ボタンを押してください';
+    document.getElementById('recordStatusText').style.color = '#dc3545';
+
+  } catch (err) {
+    alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
+    console.error('録音エラー:', err);
+  }
+}
+
+function stopAudioRecording() {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+    // ストリームの停止
+    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    
+    document.getElementById('stopRecordBtn').style.display = 'none';
+    document.getElementById('recordStatusText').textContent = '⏳ AIが要約・Google Chat送信処理中...（数秒〜10秒ほどお待ちください）';
+    document.getElementById('recordStatusText').style.color = '#002b66';
+  }
+}
+
+async function processAndSendAudio(blob) {
+  setButtonsDisabled(true);
+
+  try {
+    // BlobをBase64文字列に変換
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = async () => {
+      const base64Data = reader.result.split(',')[1];
+      const mimeType = blob.type || 'audio/webm';
+
+      const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
+      const speakerName = member ? member.name : '不明';
+
+      const result = await sendPost({
+        action: 'processAudioGemini',
+        targetNo: currentMemoTargetNo,
+        speakerName: speakerName,
+        audioBase64: base64Data,
+        mimeType: mimeType
+      });
+
+      if (result && result.success !== false) {
+        document.getElementById('recordStatusText').textContent = '✅ 要約完了！ Google Chatに投稿しました。';
+        document.getElementById('recordStatusText').style.color = '#28a745';
+        renderMemoTimeline();
+        setTimeout(resetAudioUI, 3000);
+      } else {
+        document.getElementById('recordStatusText').textContent = '❌ AI処理に失敗しました。もう一度お試しください。';
+        document.getElementById('recordStatusText').style.color = '#dc3545';
+        setTimeout(resetAudioUI, 4000);
+      }
+    };
+  } catch (e) {
+    console.error('音声送信失敗:', e);
+    alert('音声の送信処理中にエラーが発生しました。');
+    resetAudioUI();
+  } finally {
+    setButtonsDisabled(false);
+  }
 }
 
 function renderMemoTimeline() {
