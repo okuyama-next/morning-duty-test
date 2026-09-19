@@ -259,7 +259,7 @@ async function startAudioRecording() {
     };
 
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
       await processAndSendAudio(audioBlob);
     };
 
@@ -278,7 +278,6 @@ async function startAudioRecording() {
 function stopAudioRecording() {
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
-    // ストリームの停止
     mediaRecorder.stream.getTracks().forEach(track => track.stop());
     
     document.getElementById('stopRecordBtn').style.display = 'none';
@@ -291,12 +290,20 @@ async function processAndSendAudio(blob) {
   setButtonsDisabled(true);
 
   try {
-    // BlobをBase64文字列に変換
     const reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = async () => {
       const base64Data = reader.result.split(',')[1];
-      const mimeType = blob.type || 'audio/webm';
+      
+      // iPhone (Safari) と PC の双方に対応する MIME Type 判別
+      let mimeType = blob.type || 'audio/webm';
+      if (mimeType.includes('mp4') || mimeType.includes('aac')) {
+        mimeType = 'audio/mp4';
+      } else if (mimeType.includes('ogg')) {
+        mimeType = 'audio/ogg';
+      } else {
+        mimeType = 'audio/webm';
+      }
 
       const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
       const speakerName = member ? member.name : '不明';
@@ -309,15 +316,16 @@ async function processAndSendAudio(blob) {
         mimeType: mimeType
       });
 
-      if (result && result.success !== false) {
+      if (result && result.success === true) {
         document.getElementById('recordStatusText').textContent = '✅ 要約完了！ Google Chatに投稿しました。';
         document.getElementById('recordStatusText').style.color = '#28a745';
         renderMemoTimeline();
         setTimeout(resetAudioUI, 3000);
       } else {
-        document.getElementById('recordStatusText').textContent = '❌ AI処理に失敗しました。もう一度お試しください。';
+        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
+        document.getElementById('recordStatusText').textContent = `❌ ${errMsg}`;
         document.getElementById('recordStatusText').style.color = '#dc3545';
-        setTimeout(resetAudioUI, 4000);
+        setTimeout(resetAudioUI, 5000);
       }
     };
   } catch (e) {
