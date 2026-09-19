@@ -56,7 +56,7 @@
             <div class="concept-body">
               期待を超える「満足」。<br>
               想像を超える「安心」。<br>
-              そして、それは「感動」になる。
+              AND、それは「感動」になる。
             </div>
           </div>
 
@@ -68,7 +68,7 @@
               ひとつでも多くの幸せな人生を<br>
               世の中に増やし続けていくために、<br>
               私たちは本気で努力する。<br>
-              そして、私たちも幸せになる。
+              AND、私たちも幸せになる。
             </div>
             <div class="promise-section">
               <div class="promise-tag">PROMISE</div>
@@ -112,36 +112,35 @@
         </div>
 
         <div class="edit-list-title">メンバー管理（回数調整・削除）</div>
+        <p class="edit-list-subnote">※名前をタップすると個別共有メモを編集できます</p>
         <div class="search-container">
           <input type="text" id="searchMemberInput" class="search-input" placeholder="🔍 名前で検索..." oninput="filterMemberList()">
         </div>
-        
-<!-- メモ専用モーダル -->
-<div id="memoModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="memoModalTitle">メンバーのメモ</h3>
-      <span class="close-button" onclick="closeMemoModal()">&times;</span>
-    </div>
-    <div class="modal-body">
-      <!-- メモ入力エリア -->
-      <div class="memo-input-container">
-        <textarea id="memoInput" placeholder="（例）連絡事項など" rows="3"></textarea>
-        <button id="saveMemoBtn" class="btn btn-primary" onclick="saveMemo()">メモを追加</button>
-      </div>
 
-      <!-- タイムライン風メモ一覧 -->
-      <div class="memo-timeline" id="memoTimeline">
-        <!-- JSで動的に追加されます -->
-      </div>
-    </div>
-  </div>
-</div>
         <!-- 日付指定ポップアップエリア -->
         <div id="datePickerContainer" style="display: none;"></div>
 
         <div id="editMemberList" class="edit-member-list">
           <div class="loading">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 個別共有メモ専用モーダル（1ユーザー1メモ） -->
+  <div id="memoModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="memoModalTitle">📝 メンバーのメモ</h2>
+        <button class="close-btn" onclick="closeMemoModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="memo-container">
+          <textarea id="memoInput" class="memo-textarea" placeholder="（例）連絡事項など" rows="6"></textarea>
+          <div class="memo-actions">
+            <button class="btn btn-delete" onclick="deleteMemo()">メモを消去</button>
+            <button class="btn btn-add" onclick="saveMemo()">保存</button>
+          </div>
         </div>
       </div>
     </div>
