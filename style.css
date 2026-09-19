@@ -106,353 +106,501 @@ h1 {
   font-size: 0.85rem;
   background: rgba(255, 255, 255, 0.15);
   display: inline-block;
-  padding: 4px 14px;
+  padding: 4px 12px;
   border-radius: 20px;
   margin-bottom: 12px;
-  letter-spacing: 0.03em;
 }
-.next-card .label { font-size: 0.9rem; opacity: 0.9; }
-.next-card .name { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+.next-card .label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+.next-card .name {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 8px 0 4px 0;
+}
 .next-card .no {
   font-size: 0.85rem;
-  background: rgba(255,255,255,0.2);
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 12px;
+  opacity: 0.8;
   margin-bottom: 16px;
 }
 
-.btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
+.list-title {
+  font-size: 0.95rem;
   font-weight: bold;
-  border-radius: 20px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  transition: all 0.2s ease;
+  color: #444;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.btn:hover {
-  background-color: #218838;
-  transform: translateY(-1px);
-}
-.btn:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-  transform: none;
-}
-.btn-main { padding: 10px 20px; font-size: 0.95rem; display: block; margin: 0 auto; }
-.btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; }
-.btn-add { background-color: #002b66; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; box-shadow: none; }
-.btn-add:hover { background-color: #00183e; }
-.btn-delete { background-color: #dc3545; padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; box-shadow: none; }
-.btn-delete:hover { background-color: #bd2130; }
-.btn-undo { background-color: #6c757d; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; box-shadow: none; }
 
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.member-item {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.member-item.is-next {
+  border-left: 4px solid #0056b3;
+}
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.member-no {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: bold;
+  width: 42px;
+}
+.member-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.turn-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+.turn-badge.today {
+  background-color: #e8f0fe;
+  color: #002b66;
+  font-weight: bold;
+}
+.turn-badge.soon {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+.turn-badge.normal {
+  background-color: #f1f3f4;
+  color: #5f6368;
+}
+
+.btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  font-size: 0.85rem;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-main {
+  background-color: #00e676;
+  color: #004d40;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border-radius: 24px;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0,230,118,0.4);
+}
+.btn-main:hover {
+  background-color: #00c853;
+}
+.btn-small {
+  background-color: #f1f3f4;
+  color: #3c4043;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+.btn-small:hover {
+  background-color: #e8eaed;
+}
+.btn-add {
+  background-color: #0056b3;
+  color: white;
+}
+.btn-add:hover {
+  background-color: #004085;
+}
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+.btn-delete:hover {
+  background-color: #bd2130;
+}
 .btn-step {
   background-color: #e9ecef;
   color: #495057;
   border: 1px solid #ced4da;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  font-size: 0.85rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  box-shadow: none;
-  font-weight: bold;
+  font-size: 0.9rem;
 }
-.btn-step:hover { background-color: #dee2e6; transform: none; }
-
-.list-title { font-size: 1rem; margin-bottom: 12px; font-weight: bold; color: #002b66; }
-.member-list { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.member-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid #eee;
+.btn-step:hover {
+  background-color: #dee2e6;
 }
-.member-item:last-child { border-bottom: none; }
-.member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
-.member-info { display: flex; align-items: center; gap: 8px; }
-.member-no { color: #888; font-size: 0.8rem; width: 40px; }
-.member-name { font-weight: bold; }
-.member-actions { display: flex; align-items: center; gap: 6px; }
+.btn-undo {
+  background-color: #856404;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
 
-.turn-badge {
-  font-size: 0.7rem;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: bold;
-  display: inline-block;
+.loading {
   text-align: center;
+  padding: 40px 0;
+  color: #666;
+  font-size: 0.9rem;
 }
-.turn-badge.today { background-color: #002b66; color: white; }
-.turn-badge.soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-.turn-badge.normal { background-color: #e9ecef; color: #495057; }
 
-.loading { text-align: center; padding: 40px; color: #666; }
-
-/* モーダル共通スタイル */
+/* --- モーダル共通スタイル --- */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 1000; padding: 16px; box-sizing: border-box;
-  overscroll-behavior: contain;
-}
-.modal-content {
-  background: white; width: 100%; max-width: 480px; max-height: 85vh;
-  border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.modal-header { padding: 16px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-.modal-header h2 { font-size: 1.05rem; margin: 0; color: #002b66; font-weight: bold; }
-.close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; padding: 0; line-height: 1; }
-.close-btn:hover { color: #333; }
-
-.modal-body {
-  padding: 16px 20px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.admin-card { background: #f8f9fa; padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e9ecef; }
-.admin-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 10px; }
-.add-form { display: flex; gap: 8px; }
-.add-input, .search-input {
-  flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
-}
-.add-input:focus, .search-input:focus { border-color: #002b66; }
-.search-container { margin-bottom: 10px; }
-.search-input { width: 100%; background: #fff; }
-.edit-list-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 8px; }
-
-.edit-member-list {
-  background: white;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  max-height: 240px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #eee; }
-.edit-member-item:last-child { border-bottom: none; }
-
-.edit-controls { display: flex; align-items: center; gap: 6px; }
-.count-tag { font-size: 0.72rem; color: #666; font-weight: bold; width: 60px; text-align: center; }
-
-.date-picker-box {
-  margin-top: 12px;
-  padding: 12px;
-  background: #eef5ff;
-  border: 1px solid #b8daff;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.date-picker-box label { font-size: 0.8rem; font-weight: bold; color: #004085; }
-.date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
-.date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
-
-/* --- 東宝ハウススタイル（VISION / SPIRIT / PROMISE） --- */
-.hero-concept {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 24px;
-}
-.concept-card {
-  background: #eaf2f8;
-  border-radius: 8px;
-  padding: 20px;
-  color: #002b66;
-}
-.concept-header-tag {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #002b66;
-  margin-bottom: 10px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-}
-.concept-main-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #002b66;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.concept-main-title .no1-highlight {
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: #002b66;
-  letter-spacing: -0.02em;
-  margin: 0 4px;
-}
-.concept-body {
-  font-size: 0.88rem;
-  color: #1a365d;
-  line-height: 1.8;
-}
-.promise-section {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid #cbd5e1;
-}
-.promise-tag {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-  color: #002b66;
-  margin-bottom: 8px;
-}
-
-.section-divider {
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #002b66;
-  margin: 24px 0 14px 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #002b66;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* --- クレド（MIND）専用スタイル --- */
-.credo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-}
-.credo-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 16px;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-}
-.credo-card:hover {
-  border-color: #002b66;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,43,102,0.1);
-}
-.credo-card.highlight {
-  background: #e8f0fe;
-  border: 2px solid #002b66;
-  box-shadow: 0 4px 14px rgba(0,43,102,0.25);
-}
-.credo-no {
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #002b66;
-  background: #e8f0fe;
-  padding: 3px 10px;
-  border-radius: 12px;
-  display: inline-block;
-  margin-bottom: 8px;
-}
-.credo-card.highlight .credo-no {
-  background: #002b66;
-  color: white;
-}
-.credo-title {
-  font-weight: bold;
-  font-size: 0.98rem;
-  color: #002b66;
-  margin-bottom: 8px;
-  line-height: 1.4;
-}
-.credo-text {
-  font-size: 0.82rem;
-  color: #4a5568;
-  line-height: 1.7;
-}
-
-/* --- 個別共有メモ機能のスタイル --- */
-.memo-input-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.memo-input-container textarea {
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-family: inherit; /* 既存フォントを継承 */
-  font-size: 14px;
-  resize: vertical;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
   box-sizing: border-box;
 }
 
-.memo-timeline {
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  animation: modalFadeIn 0.2s ease-out;
 }
 
-.memo-item {
-  background: #f9f9f9;
-  border-left: 4px solid #4a90e2; /* タイムライン風のワンポイント */
-  padding: 10px 12px;
-  border-radius: 4px;
-  position: relative;
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.memo-content {
-  font-size: 14px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  margin-bottom: 6px;
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #002b66;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+}
+.close-btn:hover {
   color: #333;
 }
 
-.memo-date {
-  font-size: 11px;
-  color: #888;
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.admin-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.admin-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 8px;
+}
+.add-form {
+  display: flex;
+  gap: 8px;
+}
+.add-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.edit-list-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 4px;
+}
+
+.edit-list-subnote {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.search-container {
+  margin-bottom: 12px;
+}
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.edit-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.edit-member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+.edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- 設定リスト内メンバー名のタップスタイル --- */
+.member-name-clickable {
+  cursor: pointer;
+  color: #0056b3;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 86, 179, 0.3);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.member-name-clickable:hover {
+  color: #002b66;
+  text-decoration-color: #002b66;
+}
+
+.memo-badge {
+  font-size: 0.7rem;
+  background-color: #e8f0fe;
+  color: #002b66;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: normal;
+  border: 1px solid #b8daff;
+}
+
+/* --- 日付指定ポップアップスタイル --- */
+.date-picker-box {
+  background-color: #e8f0fe;
+  border: 1px solid #b8daff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #002b66;
+}
+.date-picker-input {
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.date-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* --- クレドモーダルスタイル --- */
+.hero-concept {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.concept-card {
+  background: linear-gradient(135deg, #002b66, #004085);
+  color: white;
+  border-radius: 8px;
+  padding: 14px 16px;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.concept-header-tag {
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  background: rgba(255,255,255,0.2);
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.concept-main-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.no1-highlight {
+  color: #ffca28;
+  font-size: 1.3rem;
+}
+.concept-body {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+.promise-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px border;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+.promise-tag {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #ffca28;
+  margin-bottom: 4px;
+}
+
+.section-divider {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #002b66;
+  border-bottom: 2px solid #002b66;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.credo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.credo-card {
+  background: #f8f9fa;
+  border-left: 4px solid #002b66;
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  transition: all 0.3s ease;
+}
+.credo-card.highlight {
+  background: #fff3cd;
+  border-left-color: #ffc107;
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.credo-no {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #002b66;
+  background: #e8f0fe;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.credo-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #333;
+  margin: 4px 0;
+}
+.credo-text {
+  font-size: 0.78rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+/* --- 個別共有メモ専用モーダルのスタイル --- */
+.memo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.memo-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.memo-textarea:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
 .memo-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 6px;
-}
-
-.memo-btn {
-  background: none;
-  border: none;
-  font-size: 12px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.memo-btn-edit {
-  color: #4a90e2;
-}
-
-.memo-btn-delete {
-  color: #e74c3c;
-}
-
-.memo-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
