@@ -10,6 +10,10 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
+// プレビュー一時保存用
+let pendingTargetNo = null;
+let pendingSpeakerName = null;
+
 // クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
   { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。<br>明るく元気に笑って泣いて怒る人も、みんなから愛される。<br>感謝の気持ちを声にすると、やまびこになって返ってくる。<br>礼儀とマナーを身につけると、不思議と心もキレイになる。" },
@@ -171,7 +175,7 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
-/* --- ヘッダー録音機能 --- */
+/* --- ヘッダー録音・確認プレビュー機能 --- */
 function toggleHeaderRecording() {
   if (isRecording) {
     stopHeaderRecording();
@@ -199,7 +203,7 @@ async function startHeaderRecording() {
 
     mediaRecorder.onstop = async () => {
       const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
-      await processAndSendHeaderAudio(audioBlob);
+      await processAudioToPreview(audioBlob);
     };
 
     mediaRecorder.start();
@@ -207,9 +211,9 @@ async function startHeaderRecording() {
 
     const btn = document.getElementById('headerRecordBtn');
     btn.classList.add('is-recording');
-    btn.textContent = '⏹️ 録音停止・送信';
+    btn.textContent = '⏹️ 録音停止';
 
-    showRecordStatus(`🔴 ${globalData.next.name} さんの朝礼を録音中...（他の操作も可能です）`, 'info');
+    showRecordStatus(`🔴 ${globalData.next.name} さんの朝礼を録音中...`, 'info');
 
   } catch (err) {
     alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
@@ -228,11 +232,11 @@ function stopHeaderRecording() {
     btn.classList.remove('is-recording');
     btn.textContent = '🎙️ 朝礼録音';
 
-    showRecordStatus('⏳ AIが要約・Google Chat送信処理中...（そのままお待ちいただけます）', 'info');
+    showRecordStatus('⏳ AIが文字起こし・要約を生成中...（そのままお待ちください）', 'info');
   }
 }
 
-async function processAndSendHeaderAudio(blob) {
+async function processAudioToPreview(blob) {
   try {
     const reader = new FileReader();
     reader.readAsDataURL(blob);
@@ -248,34 +252,73 @@ async function processAndSendHeaderAudio(blob) {
         mimeType = 'audio/webm';
       }
 
-      const targetNo = globalData.next.no;
-      const speakerName = globalData.next.name;
+      pendingTargetNo = globalData.next.no;
+      pendingSpeakerName = globalData.next.name;
 
+      // 送信せず、要約テキストの生成のみをリクエスト
       const result = await sendPost({
-        action: 'processAudioGemini',
-        targetNo: targetNo,
-        speakerName: speakerName,
+        action: 'generateAudioSummaryOnly',
         audioBase64: base64Data,
         mimeType: mimeType
       });
 
-      if (result && result.success === true) {
-        showRecordStatus(`✅ ${speakerName} さんの朝礼要約を Google Chat に投稿しました！`, 'success');
-        if (currentMemoTargetNo === targetNo) {
-          renderMemoTimeline();
-        }
-        setTimeout(hideRecordStatus, 5000);
+      hideRecordStatus();
+
+      if (result && result.success === true && result.summaryText) {
+        // 確認プレビューモーダルを開く
+        document.getElementById('previewModalTitle').textContent = `🔍 ${pendingSpeakerName} さんの朝礼メモ確認`;
+        document.getElementById('previewTextarea').value = result.summaryText;
+        document.getElementById('previewModal').style.display = 'flex';
       } else {
-        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
+        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しくさい。';
         showRecordStatus(`❌ ${errMsg}`, 'error');
-        setTimeout(hideRecordStatus, 6000);
+        setTimeout(hideRecordStatus, 5000);
       }
     };
   } catch (e) {
-    console.error('音声送信失敗:', e);
+    console.error('音声処理失敗:', e);
     showRecordStatus('❌ 音声処理中にエラーが発生しました。', 'error');
     setTimeout(hideRecordStatus, 5000);
   }
+}
+
+async function confirmAndSendChat() {
+  const finalText = document.getElementById('previewTextarea').value.trim();
+  if (!finalText) {
+    alert("テキスト内容が空です。");
+    return;
+  }
+
+  const sendBtn = document.getElementById('sendChatBtn');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '送信中...';
+
+  const result = await sendPost({
+    action: 'sendConfirmedChatMemo',
+    targetNo: pendingTargetNo,
+    speakerName: pendingSpeakerName,
+    summaryText: finalText
+  });
+
+  sendBtn.disabled = false;
+  sendBtn.textContent = '📤 Google Chatに送信';
+  document.getElementById('previewModal').style.display = 'none';
+
+  if (result && result.success === true) {
+    showRecordStatus(`✅ ${pendingSpeakerName} さんの朝礼要約を Google Chat に投稿しました！`, 'success');
+    setTimeout(hideRecordStatus, 5000);
+  } else {
+    showRecordStatus('❌ 送信に失敗しました。', 'error');
+    setTimeout(hideRecordStatus, 5000);
+  }
+}
+
+function cancelPreview() {
+  document.getElementById('previewModal').style.display = 'none';
+  pendingTargetNo = null;
+  pendingSpeakerName = null;
+  showRecordStatus('録音データを破棄しました。', 'info');
+  setTimeout(hideRecordStatus, 3000);
 }
 
 function showRecordStatus(text, type) {
