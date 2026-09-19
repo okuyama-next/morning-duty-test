@@ -185,12 +185,11 @@ function toggleHeaderRecording() {
 
 async function startHeaderRecording() {
   try {
-    // 遠くの声や小さな音も拾いやすくするマイク集音設定
     const stream = await navigator.mediaDevices.getUserMedia({ 
       audio: {
         echoCancellation: true,
-        noiseSuppression: false, // 遠くの声を雑音と判定して消さないようにオフ
-        autoGainControl: true    // 自動で音量を持ち上げる設定
+        noiseSuppression: false,
+        autoGainControl: true
       } 
     });
     
@@ -256,7 +255,6 @@ async function processAudioToPreview(blob) {
 
       pendingTargetNo = globalData && globalData.next ? globalData.next.no : null;
 
-      // AI要約のみをリクエスト
       const result = await sendPost({
         action: 'generateAudioSummaryOnly',
         audioBase64: base64Data,
@@ -266,14 +264,12 @@ async function processAudioToPreview(blob) {
       hideRecordStatus();
 
       if (result && result.success === true && result.summaryText) {
-        // 無音・発言なしの場合はポップアップを開かずにステータス表示で終了
         if (result.summaryText.includes('【発言なし】')) {
           showRecordStatus('🎤 音声（発言）が検出されませんでした。', 'info');
           setTimeout(hideRecordStatus, 4000);
           return;
         }
 
-        // 確認プレビューモーダルを開く
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
         document.getElementById('previewTextarea').value = result.summaryText;
         document.getElementById('previewModal').style.display = 'flex';
