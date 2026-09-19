@@ -281,6 +281,59 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
+/* --- 音声録音カードスタイル --- */
+.audio-record-card {
+  background: #eef4ff;
+  border: 1px solid #c3dafe;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.audio-card-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #002b66;
+  margin-bottom: 6px;
+}
+.audio-status {
+  font-size: 0.78rem;
+  color: #4a5568;
+  margin-bottom: 10px;
+}
+.audio-actions {
+  display: flex;
+  justify-content: center;
+}
+.btn-record {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-record.start {
+  background-color: #002b66;
+  color: white;
+}
+.btn-record.start:hover {
+  background-color: #001a40;
+}
+.btn-record.stop {
+  background-color: #dc3545;
+  color: white;
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
 /* メモ単一入力ボックス */
 .memo-input-box {
   display: flex;
