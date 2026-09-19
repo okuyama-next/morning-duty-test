@@ -128,7 +128,6 @@ function renderUI(data) {
   app.innerHTML = html;
 }
 
-/* --- 設定リスト内メンバー名描画 --- */
 function renderEditList(data, filterKeyword = "") {
   const container = document.getElementById('editMemberList');
   if (!data || !data.list || data.list.length === 0) {
@@ -208,14 +207,15 @@ function selectRandomCredo() {
   }
 }
 
-/* --- メモモーダル（アコーディオン型・日付のみ表示）制御 --- */
+/* --- メモモーダル（アコーディオン型・分離入力）制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
   
   document.getElementById('settingsModal').style.display = 'none';
   document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
-  document.getElementById('memoInput').value = '';
+  document.getElementById('memoTitleInput').value = '';
+  document.getElementById('memoBodyInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   
   renderMemoTimeline();
@@ -252,12 +252,10 @@ function renderMemoTimeline() {
     card.className = 'memo-accordion-card';
     card.id = `memoCard-${memo.id}`;
 
-    // 改行で分割（1行目をタイトル、2行目以降を本文とする）
     const lines = memo.text.split('\n');
     const titlePreview = lines[0].trim() || '無題のメモ';
     const bodyText = lines.slice(1).join('\n').trim();
 
-    // 日時文字列から時間を切り捨てて「日付のみ（例: 9/19）」にする処理
     let formattedDate = memo.date || '';
     if (formattedDate.includes(' ')) {
       formattedDate = formattedDate.split(' ')[0];
@@ -297,21 +295,26 @@ function toggleMemoCard(cardId) {
 async function saveMemo() {
   if (currentMemoTargetNo === null) return;
 
-  const text = document.getElementById('memoInput').value.trim();
-  if (!text) {
+  const titleText = document.getElementById('memoTitleInput').value.trim();
+  const bodyText = document.getElementById('memoBodyInput').value.trim();
+
+  if (!titleText && !bodyText) {
     alert('メモ内容を入力してください。');
     return;
   }
 
+  // タイトルと本文を改行で連結して一つのテキストとして保持・送信
+  const fullText = bodyText ? `${titleText}\n${bodyText}` : titleText;
   const targetNo = currentMemoTargetNo;
 
   if (editingMemoId !== null) {
-    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: text });
+    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: fullText });
   } else {
-    await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
+    await sendPost({ action: 'addMemo', targetNo: targetNo, text: fullText });
   }
 
-  document.getElementById('memoInput').value = '';
+  document.getElementById('memoTitleInput').value = '';
+  document.getElementById('memoBodyInput').value = '';
   editingMemoId = null;
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
 
@@ -319,9 +322,14 @@ async function saveMemo() {
   if (globalData) renderEditList(globalData);
 }
 
-function startEditMemo(memoId, currentText) {
+function startEditMemo(memoId, currentFullText) {
   editingMemoId = memoId;
-  document.getElementById('memoInput').value = currentText;
+  const lines = currentFullText.split('\n');
+  const title = lines[0] || '';
+  const body = lines.slice(1).join('\n');
+
+  document.getElementById('memoTitleInput').value = title;
+  document.getElementById('memoBodyInput').value = body;
   document.getElementById('saveMemoBtn').textContent = '変更を保存';
 }
 
@@ -332,7 +340,8 @@ async function deleteMemoItem(memoId) {
 
   if (editingMemoId === memoId) {
     editingMemoId = null;
-    document.getElementById('memoInput').value = '';
+    document.getElementById('memoTitleInput').value = '';
+    document.getElementById('memoBodyInput').value = '';
     document.getElementById('saveMemoBtn').textContent = 'メモを追加';
   }
 
