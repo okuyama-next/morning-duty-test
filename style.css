@@ -292,7 +292,7 @@ h1 {
   margin-bottom: 16px;
 }
 
-/* メモ入力欄：1行目（タイトル）を強調表示 */
+/* メモ入力欄 */
 .memo-textarea {
   width: 100%;
   padding: 10px 12px;
@@ -306,11 +306,22 @@ h1 {
   box-sizing: border-box;
   background-color: #fff;
 }
+
+/* 入力中の1行目のみ太字・タイトルカラー */
 .memo-textarea::first-line {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: bold;
   color: #002b66;
 }
+
+/* プレースホルダー（うっすら案内表示）の修正 */
+.memo-textarea::placeholder {
+  font-size: 0.88rem;
+  font-weight: normal;
+  color: #a0aec0;
+  opacity: 0.8;
+}
+
 .memo-textarea:focus {
   outline: none;
   border-color: #002b66;
