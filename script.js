@@ -185,7 +185,15 @@ function toggleHeaderRecording() {
 
 async function startHeaderRecording() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 遠くの声や小さな音も拾いやすくするマイク集音設定
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: false, // 遠くの声を雑音と判定して消さないようにオフ
+        autoGainControl: true    // 自動で音量を持ち上げる設定
+      } 
+    });
+    
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
 
@@ -207,7 +215,6 @@ async function startHeaderRecording() {
     btn.classList.add('is-recording');
     btn.textContent = '⏹️ 録音停止';
 
-    // 個人名を削除し、シンプルな案内メッセージに変更
     showRecordStatus(`🔴 朝礼を録音中...（他の操作も可能です）`, 'info');
 
   } catch (err) {
@@ -266,7 +273,7 @@ async function processAudioToPreview(blob) {
           return;
         }
 
-        // 確認プレビューモーダルを開く（タイトルのお名前を削除）
+        // 確認プレビューモーダルを開く
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
         document.getElementById('previewTextarea').value = result.summaryText;
         document.getElementById('previewModal').style.display = 'flex';
