@@ -126,7 +126,7 @@
     </div>
   </div>
 
-  <!-- メモ専用モーダル（単一テキストエリア統合型） -->
+  <!-- メモ専用モーダル（音声録音・AI要約機能付き） -->
   <div id="memoModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
@@ -134,9 +134,20 @@
         <button class="close-btn" onclick="closeMemoModal()" title="設定画面に戻る">✕</button>
       </div>
       <div class="modal-body">
-        <!-- 単一メモ入力ボックス -->
+        
+        <!-- 音声録音・AI送信エリア -->
+        <div class="audio-record-card">
+          <div class="audio-card-title">🎙️ 音声録音・AI自動要約チャット送信</div>
+          <div class="audio-status" id="recordStatusText">ボタンを押して朝礼の録音を開始できます</div>
+          <div class="audio-actions">
+            <button id="startRecordBtn" class="btn-record start" onclick="startAudioRecording()">🎙️ 録音開始</button>
+            <button id="stopRecordBtn" class="btn-record stop" onclick="stopAudioRecording()" style="display:none;">⏹️ 録音停止＆AI要約・送信</button>
+          </div>
+        </div>
+
+        <!-- 手入力メモボックス -->
         <div class="memo-input-box">
-          <textarea id="memoInput" class="memo-textarea" placeholder="（例）連絡事項など" rows="3"></textarea>
+          <textarea id="memoInput" class="memo-textarea" placeholder="（例）手入力の連絡事項など" rows="3"></textarea>
           <div class="memo-input-actions">
             <button id="saveMemoBtn" class="btn btn-add" onclick="saveMemo()">メモを追加</button>
           </div>
