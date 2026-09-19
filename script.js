@@ -8,6 +8,7 @@ let editingMemoId = null;
 // 音声録音管理用変数
 let mediaRecorder = null;
 let audioChunks = [];
+let isRecording = false;
 
 // クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
@@ -172,6 +173,125 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
+/* --- ヘッダー録音機能 --- */
+function toggleHeaderRecording() {
+  if (isRecording) {
+    stopHeaderRecording();
+  } else {
+    startHeaderRecording();
+  }
+}
+
+async function startHeaderRecording() {
+  if (!globalData || !globalData.next) {
+    alert("メンバーデータの読み込み完了までお待ちください。");
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = event => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
+      await processAndSendHeaderAudio(audioBlob);
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+
+    const btn = document.getElementById('headerRecordBtn');
+    btn.classList.add('is-recording');
+    btn.textContent = '⏹️ 録音停止・送信';
+
+    showRecordStatus(`🔴 ${globalData.next.name} さんの朝礼を録音中...（他の操作も可能です）`, 'info');
+
+  } catch (err) {
+    alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
+    console.error('録音エラー:', err);
+  }
+}
+
+function stopHeaderRecording() {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    
+    isRecording = false;
+
+    const btn = document.getElementById('headerRecordBtn');
+    btn.classList.remove('is-recording');
+    btn.textContent = '🎙️ 朝礼録音';
+
+    showRecordStatus('⏳ AIが要約・Google Chat送信処理中...（そのままお待ちいただけます）', 'info');
+  }
+}
+
+async function processAndSendHeaderAudio(blob) {
+  try {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = async () => {
+      const base64Data = reader.result.split(',')[1];
+      
+      let mimeType = blob.type || 'audio/webm';
+      if (mimeType.includes('mp4') || mimeType.includes('aac')) {
+        mimeType = 'audio/mp4';
+      } else if (mimeType.includes('ogg')) {
+        mimeType = 'audio/ogg';
+      } else {
+        mimeType = 'audio/webm';
+      }
+
+      const targetNo = globalData.next.no;
+      const speakerName = globalData.next.name;
+
+      const result = await sendPost({
+        action: 'processAudioGemini',
+        targetNo: targetNo,
+        speakerName: speakerName,
+        audioBase64: base64Data,
+        mimeType: mimeType
+      });
+
+      if (result && result.success === true) {
+        showRecordStatus(`✅ ${speakerName} さんの朝礼要約を Google Chat に投稿しました！`, 'success');
+        if (currentMemoTargetNo === targetNo) {
+          renderMemoTimeline();
+        }
+        setTimeout(hideRecordStatus, 5000);
+      } else {
+        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
+        showRecordStatus(`❌ ${errMsg}`, 'error');
+        setTimeout(hideRecordStatus, 6000);
+      }
+    };
+  } catch (e) {
+    console.error('音声送信失敗:', e);
+    showRecordStatus('❌ 音声処理中にエラーが発生しました。', 'error');
+    setTimeout(hideRecordStatus, 5000);
+  }
+}
+
+function showRecordStatus(text, type) {
+  const bar = document.getElementById('recordStatusBar');
+  bar.className = `record-status-bar ${type}`;
+  bar.style.display = 'block';
+  bar.textContent = text;
+}
+
+function hideRecordStatus() {
+  const bar = document.getElementById('recordStatusBar');
+  bar.style.display = 'none';
+}
+
 /* --- クレドモーダル関連処理 --- */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
@@ -220,121 +340,16 @@ function openMemoModal(no, name) {
   document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
   document.getElementById('memoInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
-  
-  resetAudioUI();
 
   renderMemoTimeline();
   document.getElementById('memoModal').style.display = 'flex';
 }
 
 function closeMemoModal() {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-  }
   document.getElementById('memoModal').style.display = 'none';
   currentMemoTargetNo = null;
   editingMemoId = null;
   document.getElementById('settingsModal').style.display = 'flex';
-}
-
-/* --- 音声録音・送信機能 --- */
-function resetAudioUI() {
-  document.getElementById('startRecordBtn').style.display = 'inline-block';
-  document.getElementById('stopRecordBtn').style.display = 'none';
-  document.getElementById('recordStatusText').textContent = 'ボタンを押して朝礼の録音を開始できます';
-  document.getElementById('recordStatusText').style.color = '#4a5568';
-  audioChunks = [];
-}
-
-async function startAudioRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = event => {
-      if (event.data.size > 0) {
-        audioChunks.push(event.data);
-      }
-    };
-
-    mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
-      await processAndSendAudio(audioBlob);
-    };
-
-    mediaRecorder.start();
-    document.getElementById('startRecordBtn').style.display = 'none';
-    document.getElementById('stopRecordBtn').style.display = 'inline-block';
-    document.getElementById('recordStatusText').textContent = '🔴 録音中... 話し終わったら停止ボタンを押してください';
-    document.getElementById('recordStatusText').style.color = '#dc3545';
-
-  } catch (err) {
-    alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
-    console.error('録音エラー:', err);
-  }
-}
-
-function stopAudioRecording() {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    
-    document.getElementById('stopRecordBtn').style.display = 'none';
-    document.getElementById('recordStatusText').textContent = '⏳ AIが要約・Google Chat送信処理中...（数秒〜10秒ほどお待ちください）';
-    document.getElementById('recordStatusText').style.color = '#002b66';
-  }
-}
-
-async function processAndSendAudio(blob) {
-  setButtonsDisabled(true);
-
-  try {
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = async () => {
-      const base64Data = reader.result.split(',')[1];
-      
-      // iPhone (Safari) と PC の双方に対応する MIME Type 判別
-      let mimeType = blob.type || 'audio/webm';
-      if (mimeType.includes('mp4') || mimeType.includes('aac')) {
-        mimeType = 'audio/mp4';
-      } else if (mimeType.includes('ogg')) {
-        mimeType = 'audio/ogg';
-      } else {
-        mimeType = 'audio/webm';
-      }
-
-      const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
-      const speakerName = member ? member.name : '不明';
-
-      const result = await sendPost({
-        action: 'processAudioGemini',
-        targetNo: currentMemoTargetNo,
-        speakerName: speakerName,
-        audioBase64: base64Data,
-        mimeType: mimeType
-      });
-
-      if (result && result.success === true) {
-        document.getElementById('recordStatusText').textContent = '✅ 要約完了！ Google Chatに投稿しました。';
-        document.getElementById('recordStatusText').style.color = '#28a745';
-        renderMemoTimeline();
-        setTimeout(resetAudioUI, 3000);
-      } else {
-        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
-        document.getElementById('recordStatusText').textContent = `❌ ${errMsg}`;
-        document.getElementById('recordStatusText').style.color = '#dc3545';
-        setTimeout(resetAudioUI, 5000);
-      }
-    };
-  } catch (e) {
-    console.error('音声送信失敗:', e);
-    alert('音声の送信処理中にエラーが発生しました。');
-    resetAudioUI();
-  } finally {
-    setButtonsDisabled(false);
-  }
 }
 
 function renderMemoTimeline() {
@@ -529,7 +544,7 @@ function closeSettingsModal() {
 }
 
 function setButtonsDisabled(disabled) {
-  const buttons = document.querySelectorAll('button');
+  const buttons = document.querySelectorAll('button:not(#headerRecordBtn)');
   buttons.forEach(b => b.disabled = disabled);
 }
 
@@ -598,8 +613,6 @@ async function executeUndo() {
 }
 
 async function sendPost(payload) {
-  setButtonsDisabled(true);
-
   try {
     const response = await fetch(GAS_URL, {
       method: 'POST',
@@ -617,8 +630,6 @@ async function sendPost(payload) {
     console.error(error);
     fetchDutyData();
     return null;
-  } finally {
-    setButtonsDisabled(false);
   }
 }
 
