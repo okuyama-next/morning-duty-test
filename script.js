@@ -62,8 +62,6 @@ async function fetchDutyData() {
           <button class="btn btn-add" style="margin-top:12px;" onclick="retryFetch()">再読み込み</button>
         </div>`;
     }
-  } finally {
-    setButtonsDisabled(false);
   }
 }
 
@@ -158,9 +156,9 @@ function renderEditList(data, filterKeyword = "") {
       <div class="edit-member-item">
         <div class="member-info">
           <span class="member-no">No.${item.no}</span>
-          <span class="member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを開く">
+          <button type="button" class="member-name-clickable" onclick="openMemoModal(${item.no}, '${item.name}')" title="クリックしてメモを開く">
             ${item.name}
-          </span>
+          </button>
         </div>
         <div class="edit-controls">
           <button class="btn-step" onclick="decrementDuty(${item.no}, '${item.name}')" title="回数を減らす">-</button>
@@ -541,11 +539,6 @@ function closeSettingsModal() {
   document.body.classList.remove('modal-open');
   document.getElementById('settingsModal').style.display = 'none';
   closeDatePicker();
-}
-
-function setButtonsDisabled(disabled) {
-  const buttons = document.querySelectorAll('button:not(#headerRecordBtn)');
-  buttons.forEach(b => b.disabled = disabled);
 }
 
 function showUndoBar(text, payload) {
