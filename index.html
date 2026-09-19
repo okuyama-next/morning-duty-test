@@ -115,7 +115,28 @@
         <div class="search-container">
           <input type="text" id="searchMemberInput" class="search-input" placeholder="🔍 名前で検索..." oninput="filterMemberList()">
         </div>
+        
+<!-- メモ専用モーダル -->
+<div id="memoModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="memoModalTitle">メンバーのメモ</h3>
+      <span class="close-button" onclick="closeMemoModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <!-- メモ入力エリア -->
+      <div class="memo-input-container">
+        <textarea id="memoInput" placeholder="（例）連絡事項など" rows="3"></textarea>
+        <button id="saveMemoBtn" class="btn btn-primary" onclick="saveMemo()">メモを追加</button>
+      </div>
 
+      <!-- タイムライン風メモ一覧 -->
+      <div class="memo-timeline" id="memoTimeline">
+        <!-- JSで動的に追加されます -->
+      </div>
+    </div>
+  </div>
+</div>
         <!-- 日付指定ポップアップエリア -->
         <div id="datePickerContainer" style="display: none;"></div>
 
