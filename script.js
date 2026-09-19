@@ -12,7 +12,6 @@ let isRecording = false;
 
 // プレビュー一時保存用
 let pendingTargetNo = null;
-let pendingSpeakerName = null;
 
 // クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
@@ -21,7 +20,7 @@ const CREDO_DATA = [
   { no: "03", title: "基本に戻る素直さと勇気。", text: "難しいことができるよりも、当たり前のことをきちんと当たり前にできる方が難しい。<br>超えられない壁は、もう一度原点に立ち返って見つめることで、超えられる壁になる。" },
   { no: "04", title: "仕事を楽しむことの喜びと幸せ。", text: "楽しい仕事を探す人は、仕事を楽しめない。<br>辛さや苦しみを乗り越える喜びを知っている人は、仕事を楽しめる。<br>自分が幸せでない人は、人を幸せにはできない。" },
   { no: "05", title: "努力は成長となって報われる", text: "もう限界だと心が折れたとき、もう一歩だけ踏み出す強さがあれば、人は常に成長し続けることができる。<br>「昔は良かった」と言う人は、自分の人生を自ら否定している。<br>努力しない人は過去を振り返り、自分を磨き続ける人は未来を思う。" },
-  { no: "06", title: "誇りを持てる仕事に出会えた奇跡。", text: "お客様に「ありがとう」と言われる仕事は、世の中にそれほど多くない。<br>いろんな人生と関わる仕事は、大きな責任と覚悟をともなう。<br>いろんな人生と関わる仕事だから、大きな喜びと満足があるし、自分の人生も豊かにしてくれる。" },
+  { no: "06", title: "誇りを持てる仕事に出会えた奇跡。", text: "お客様に「ありがとう」と言われる仕事は、世の中にそれほど多くない。<br>いろんな人生と関わる仕事は、大きな責任と覚覚悟をともなう。<br>いろんな人生と関わる仕事だから、大きな喜びと満足があるし、自分の人生も豊かにしてくれる。" },
   { no: "07", title: "「住まい」のもっと先にある感動を。", text: "「ここまでやってくれるのか」と思われる人は、「住まい」というモノを売っているのではなく、「住まい」を超えたいろんなコトを売っている。" },
   { no: "08", title: "競い合いながら助け合える仲間がいる。", text: "競い合いながら一緒に成長できる仲間は、困難にぶつかったとき一緒に乗り越えられる仲間であり、人生のかけがえのない財産になる。" },
   { no: "09", title: "自分を叶えるための最高の場所。", text: "一度しかない人生でどんな自分を叶えるか。<br>自分を自立させ、成長させていくことは、自分がこの世界にとってかけがえのない存在として素敵に生きていることの証しに他ならない。" }
@@ -185,11 +184,6 @@ function toggleHeaderRecording() {
 }
 
 async function startHeaderRecording() {
-  if (!globalData || !globalData.next) {
-    alert("メンバーデータの読み込み完了までお待ちください。");
-    return;
-  }
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
@@ -213,7 +207,7 @@ async function startHeaderRecording() {
     btn.classList.add('is-recording');
     btn.textContent = '⏹️ 録音停止';
 
-    showRecordStatus(`🔴 ${globalData.next.name} さんの朝礼を録音中...`, 'info');
+    showRecordStatus(`🔴 朝礼を録音中...（他の操作も可能です）`, 'info');
 
   } catch (err) {
     alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
@@ -252,10 +246,9 @@ async function processAudioToPreview(blob) {
         mimeType = 'audio/webm';
       }
 
-      pendingTargetNo = globalData.next.no;
-      pendingSpeakerName = globalData.next.name;
+      pendingTargetNo = globalData && globalData.next ? globalData.next.no : null;
 
-      // 送信せず、要約テキストの生成のみをリクエスト
+      // AI要約のみをリクエスト
       const result = await sendPost({
         action: 'generateAudioSummaryOnly',
         audioBase64: base64Data,
@@ -265,12 +258,18 @@ async function processAudioToPreview(blob) {
       hideRecordStatus();
 
       if (result && result.success === true && result.summaryText) {
+        if (result.summaryText.includes('【発言なし】')) {
+          showRecordStatus('🎤 音声（発言）が検出されませんでした。', 'info');
+          setTimeout(hideRecordStatus, 4000);
+          return;
+        }
+
         // 確認プレビューモーダルを開く
-        document.getElementById('previewModalTitle').textContent = `🔍 ${pendingSpeakerName} さんの朝礼メモ確認`;
+        document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
         document.getElementById('previewTextarea').value = result.summaryText;
         document.getElementById('previewModal').style.display = 'flex';
       } else {
-        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しくさい。';
+        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
         showRecordStatus(`❌ ${errMsg}`, 'error');
         setTimeout(hideRecordStatus, 5000);
       }
@@ -296,7 +295,6 @@ async function confirmAndSendChat() {
   const result = await sendPost({
     action: 'sendConfirmedChatMemo',
     targetNo: pendingTargetNo,
-    speakerName: pendingSpeakerName,
     summaryText: finalText
   });
 
@@ -305,7 +303,7 @@ async function confirmAndSendChat() {
   document.getElementById('previewModal').style.display = 'none';
 
   if (result && result.success === true) {
-    showRecordStatus(`✅ ${pendingSpeakerName} さんの朝礼要約を Google Chat に投稿しました！`, 'success');
+    showRecordStatus(`✅ 朝礼要約を Google Chat に投稿しました！`, 'success');
     setTimeout(hideRecordStatus, 5000);
   } else {
     showRecordStatus('❌ 送信に失敗しました。', 'error');
@@ -316,7 +314,6 @@ async function confirmAndSendChat() {
 function cancelPreview() {
   document.getElementById('previewModal').style.display = 'none';
   pendingTargetNo = null;
-  pendingSpeakerName = null;
   showRecordStatus('録音データを破棄しました。', 'info');
   setTimeout(hideRecordStatus, 3000);
 }
