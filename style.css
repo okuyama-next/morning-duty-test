@@ -238,40 +238,43 @@ h1 {
   background: white;
   border: 1px solid #eee;
   border-radius: 8px;
-  max-height: 240px;
+  max-height: 260px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #eee; }
+.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; }
 .edit-member-item:last-child { border-bottom: none; }
 
 .edit-controls { display: flex; align-items: center; gap: 6px; }
 
-/* --- 設定リスト内メンバー名のタップスタイル --- */
+/* --- 【洗練版】設定リスト内メンバー名ボタンデザイン（2枚目画像の改善） --- */
 .member-name-clickable {
   cursor: pointer;
-  color: #0056b3;
-  text-decoration: underline;
-  text-decoration-color: rgba(0, 86, 179, 0.3);
-  text-underline-offset: 3px;
+  background-color: #f1f5f9;
+  color: #002b66;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: 1px solid #cbd5e1;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .member-name-clickable:hover {
-  color: #002b66;
-  text-decoration-color: #002b66;
+  background-color: #e2e8f0;
+  border-color: #002b66;
 }
 
 .memo-badge {
-  font-size: 0.7rem;
-  background-color: #e8f0fe;
-  color: #002b66;
+  font-size: 0.68rem;
+  background-color: #002b66;
+  color: #ffffff;
   padding: 2px 6px;
-  border-radius: 10px;
+  border-radius: 4px;
   font-weight: normal;
-  border: 1px solid #b8daff;
+  letter-spacing: 0.02em;
 }
 
 /* --- 日付指定ポップアップスタイル --- */
@@ -289,54 +292,20 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* --- 個別マイページ（メモ）スタイル --- */
-.profile-card {
+/* --- 【iPhoneメモ風】蓄積型メモ用スタイル --- */
+.memo-input-box {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
   background: #f8f9fa;
+  padding: 12px;
   border-radius: 10px;
   border: 1px solid #e9ecef;
-}
-.profile-avatar {
-  font-size: 1.8rem;
-  background: #e8f0fe;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-.profile-name {
-  font-size: 1.05rem;
-  font-weight: bold;
-  color: #002b66;
-}
-.profile-no {
-  font-size: 0.78rem;
-  color: #666;
-  margin-top: 2px;
-}
-.memo-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.memo-label {
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #495057;
+  margin-bottom: 16px;
 }
 .memo-textarea {
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-family: inherit;
@@ -346,19 +315,76 @@ h1 {
   resize: vertical;
   box-sizing: border-box;
   background-color: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .memo-textarea:focus {
   outline: none;
   border-color: #002b66;
   box-shadow: 0 0 0 3px rgba(0, 43, 102, 0.12);
 }
-.memo-actions {
+.memo-input-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.memo-timeline-header {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.memo-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.memo-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #002b66;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.memo-card-text {
+  font-size: 0.88rem;
+  color: #2d3748;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.memo-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  font-size: 0.72rem;
+  color: #a0aec0;
 }
+
+.memo-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.memo-card-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-weight: bold;
+}
+.memo-card-btn.edit { color: #0056b3; }
+.memo-card-btn.delete { color: #dc3545; }
 
 /* --- クレドスタイル --- */
 .hero-concept {
