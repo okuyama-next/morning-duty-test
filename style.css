@@ -281,7 +281,7 @@ h1 {
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* シンプルテキストエリア仕様 */
+/* メモ単一入力ボックス */
 .memo-input-box {
   display: flex;
   flex-direction: column;
@@ -299,7 +299,7 @@ h1 {
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   line-height: 1.6;
   color: #333;
   resize: vertical;
