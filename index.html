@@ -112,7 +112,6 @@
         </div>
 
         <div class="edit-list-title">メンバー管理（回数調整・削除）</div>
-        <p class="edit-list-subnote">※名前をタップするとメモを確認・管理できます</p>
         <div class="search-container">
           <input type="text" id="searchMemberInput" class="search-input" placeholder="🔍 名前で検索..." oninput="filterMemberList()">
         </div>
@@ -127,11 +126,11 @@
     </div>
   </div>
 
-  <!-- メモ専用モーダル（iPhoneメモ風・タイムライン蓄積型） -->
+  <!-- メモ専用モーダル（タイトルタップ型開閉モーダル） -->
   <div id="memoModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="memoModalTitle">📝 メモ</h2>
+        <h2 id="memoModalTitle">メモ</h2>
         <button class="close-btn" onclick="closeMemoModal()" title="設定画面に戻る">✕</button>
       </div>
       <div class="modal-body">
@@ -143,8 +142,8 @@
           </div>
         </div>
 
-        <!-- タイムライン表示（蓄積メモ一覧） -->
-        <div class="memo-timeline-header">過去のメモ一覧</div>
+        <!-- アコーディオン型メモ一覧 -->
+        <div class="memo-timeline-header">過去のメモ一覧（タップで展開）</div>
         <div id="memoTimeline" class="memo-timeline">
           <!-- JSで動的描画 -->
         </div>
