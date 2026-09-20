@@ -10,6 +10,9 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
+// 画面スリープ防止（Wake Lock）用変数
+let wakeLock = null;
+
 // プレビュー一時保存用
 let pendingTargetNo = null;
 
@@ -25,6 +28,31 @@ const CREDO_DATA = [
   { no: "08", title: "競い合いながら助け合える仲間がいる。", text: "競い合いながら一緒に成長できる仲間は、困難にぶつかったとき一緒に乗り越えられる仲間であり、人生のかけがえのない財産になる。" },
   { no: "09", title: "自分を叶えるための最高の場所。", text: "一度しかない人生でどんな自分を叶えるか。<br>自分を自立させ、成長させていくことは、自分がこの世界にとってかけがえのない存在として素敵に生きていることの証しに他ならない。" }
 ];
+
+/* --- 画面スリープ防止（Wake Lock API）機能 --- */
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('画面スリープ防止（Wake Lock）が有効化されました');
+    }
+  } catch (err) {
+    console.error(`Wake Lock エラー: ${err.name}, ${err.message}`);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release()
+      .then(() => {
+        wakeLock = null;
+        console.log('画面スリープ防止（Wake Lock）を解除しました');
+      })
+      .catch(err => {
+        console.error(`Wake Lock 解除エラー: ${err.message}`);
+      });
+  }
+}
 
 function getTodayFormattedString() {
   const now = new Date();
@@ -203,12 +231,16 @@ async function startHeaderRecording() {
     };
 
     mediaRecorder.onstop = async () => {
+      releaseWakeLock(); // 録音完了時にスリープ防止を解除
       const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
       await processAudioToPreview(audioBlob);
     };
 
     mediaRecorder.start();
     isRecording = true;
+
+    // 録音開始時に画面スリープ防止を起動
+    await requestWakeLock();
 
     const btn = document.getElementById('headerRecordBtn');
     btn.classList.add('is-recording');
@@ -228,6 +260,9 @@ function stopHeaderRecording() {
     mediaRecorder.stream.getTracks().forEach(track => track.stop());
     
     isRecording = false;
+
+    // スリープ防止を解除
+    releaseWakeLock();
 
     const btn = document.getElementById('headerRecordBtn');
     btn.classList.remove('is-recording');
@@ -693,19 +728,25 @@ async function sendPost(payload) {
 
 fetchDutyData();
 
-// 画面のスリープ復帰（タブの表示切り替え）を検知して状態をチェック
-document.addEventListener("visibilitychange", () => {
+// 画面のスリープ復帰（タブの表示切り替え）を検知して状態チェック＆スリープ防止の自動復旧
+document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "visible") {
-    if (isRecording && mediaRecorder && mediaRecorder.state === "inactive") {
-      console.warn("スリープ復帰を検知: 録音ストリームが停止していたためリセットします。");
-      isRecording = false;
-      const btn = document.getElementById('headerRecordBtn');
-      if (btn) {
-        btn.classList.remove('is-recording');
-        btn.textContent = '🎙️ 朝礼録音';
+    if (isRecording) {
+      if (mediaRecorder && mediaRecorder.state === "inactive") {
+        console.warn("スリープ復帰を検知: 録音ストリームが停止していたためリセットします。");
+        isRecording = false;
+        releaseWakeLock();
+        const btn = document.getElementById('headerRecordBtn');
+        if (btn) {
+          btn.classList.remove('is-recording');
+          btn.textContent = '🎙️ 朝礼録音';
+        }
+        showRecordStatus('⚠️ 画面スリープにより録音が中断されました。再度録音を行ってください。', 'error');
+        setTimeout(hideRecordStatus, 5000);
+      } else {
+        // バックグラウンド復帰時に Wake Lock が解除されていた場合は再取得
+        await requestWakeLock();
       }
-      showRecordStatus('⚠️ 画面スリープにより録音が中断されました。再度録音を行ってください。', 'error');
-      setTimeout(hideRecordStatus, 5000);
     }
   }
 });
