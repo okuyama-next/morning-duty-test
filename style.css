@@ -1,464 +1,547 @@
-/* ==========================================
-   基本スタイル & リセット
-   ========================================== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
 body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: #f4f6f9;
-  color: #333333;
-  line-height: 1.5;
-  padding: 20px 16px;
-  display: flex;
-  justify-content: center;
+  margin: 0;
+  padding: 16px;
+  color: #333;
 }
-
 body.modal-open {
   overflow: hidden;
 }
 
 .container {
-  width: 100%;
-  max-width: 600px; /* 本番環境に合わせた幅設定 */
-  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
 }
-
-/* ==========================================
-   ヘッダーエリア（白枠の外側に配置）
-   ========================================== */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 0 4px;
+  margin-bottom: 20px;
 }
-
-.header-left h1 {
-  font-size: 1.3rem;
-  font-weight: bold;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+h1 {
+  font-size: 1.2rem;
   color: #002b66;
+  margin: 0;
+  font-weight: bold;
 }
-
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .sheet-link {
-  background-color: #ffffff;
-  color: #002b66;
-  border: 1px solid #cbd5e1;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: 16px;
+  text-decoration: none;
   font-weight: bold;
+  transition: all 0.2s ease;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  white-space: nowrap;
 }
 
-.sheet-link:hover {
-  background-color: #f1f5f9;
-}
-
-/* 録音ボタン基本＆録音中スタイル */
 .record-btn {
-  background-color: #e0f2fe;
-  border-color: #7dd3fc;
-  color: #0369a1;
+  color: #7c2d12;
+  background-color: #ffedd5;
+  border: 1px solid #fed7aa;
 }
-
+.record-btn:hover {
+  background-color: #fdba74;
+}
 .record-btn.is-recording {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
-  animation: pulse 1.5s infinite;
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  animation: pulse-red 1.5s infinite;
 }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+.credo-btn {
+  color: #002b66;
+  background-color: #e8f0fe;
+  border: 1px solid #b8daff;
+}
+.credo-btn:hover {
+  background-color: #d0e1fd;
 }
 
 .icon-btn {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #ddd;
   border-radius: 50%;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 1.05rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-
-/* ==========================================
-   ステータス・通知バー
-   ========================================== */
-.record-status-bar {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.record-status-bar.info {
-  background-color: #f0f9ff;
-  border: 1px solid #bae6fd;
-  color: #0369a1;
-}
-
-.record-status-bar.success {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-}
-
-.record-status-bar.error {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
+.icon-btn:hover {
+  background-color: #f0f0f0;
+  transform: rotate(30deg);
 }
 
 .undo-bar {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fffbebf5;
-  border: 1px solid #fde68a;
-  color: #b45309;
+  font-size: 0.85rem;
+}
+
+.record-status-bar {
   padding: 10px 14px;
   border-radius: 8px;
-  font-size: 0.82rem;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.record-status-bar.info {
+  background-color: #e8f0fe;
+  color: #002b66;
+  border: 1px solid #b8daff;
+}
+.record-status-bar.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.record-status-bar.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.next-card {
+  background: linear-gradient(135deg, #002b66, #0056b3);
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,43,102,0.3);
+  margin-bottom: 24px;
+}
+.next-card .today-date {
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.15);
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  letter-spacing: 0.03em;
+}
+.next-card .label { font-size: 0.9rem; opacity: 0.9; }
+.next-card .name { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+.next-card .no {
+  font-size: 0.85rem;
+  background: rgba(255,255,255,0.2);
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
   margin-bottom: 16px;
 }
 
-/* ==========================================
-   メインカード（本日の当番）
-   ========================================== */
-.next-card {
-  background: linear-gradient(135deg, #002b66, #004080);
-  color: #ffffff;
-  border-radius: 14px;
-  padding: 24px 20px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 43, 102, 0.15);
-  margin-bottom: 24px;
-}
-
-.today-date {
-  font-size: 0.85rem;
-  opacity: 0.9;
-  margin-bottom: 8px;
-}
-
-.next-card .label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.8;
-}
-
-.next-card .name {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 6px 0;
-}
-
-.next-card .no {
-  font-size: 0.85rem;
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 12px;
-  border-radius: 12px;
-  margin-bottom: 18px;
-}
-
-/* ボタン類 */
 .btn {
+  background-color: #28a745;
+  color: white;
   border: none;
-  border-radius: 8px;
   font-weight: bold;
+  border-radius: 20px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
 }
-
 .btn:hover {
-  opacity: 0.9;
+  background-color: #218838;
+  transform: translateY(-1px);
 }
-
-.btn-main {
-  width: 100%;
-  max-width: 280px;
-  background-color: #10b981;
-  color: #ffffff;
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 10px;
+.btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
 }
-
-.btn-small {
-  background-color: #10b981;
-  color: #ffffff;
-  padding: 5px 12px;
-  font-size: 0.78rem;
-  border-radius: 6px;
-}
-
-.btn-add {
-  background-color: #002b66;
-  color: #ffffff;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-}
-
-.btn-delete {
-  background-color: #ef4444;
-  color: #ffffff;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-}
-
-.btn-undo {
-  background-color: #f59e0b;
-  color: #ffffff;
-  padding: 4px 10px;
-  font-size: 0.75rem;
-}
+.btn-main { padding: 10px 20px; font-size: 0.95rem; display: block; margin: 0 auto; }
+.btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; }
+.btn-add { background-color: #002b66; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; box-shadow: none; }
+.btn-add:hover { background-color: #00183e; }
+.btn-delete { background-color: #dc3545; padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; box-shadow: none; }
+.btn-delete:hover { background-color: #bd2130; }
+.btn-undo { background-color: #6c757d; padding: 6px 14px; font-size: 0.85rem; border-radius: 8px; box-shadow: none; }
 
 .btn-step {
-  background-color: #e2e8f0;
-  color: #334155;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  font-weight: bold;
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-}
-
-/* ==========================================
-   メンバー一覧リスト
-   ========================================== */
-.list-title {
-  font-size: 0.9rem;
+  padding: 0;
+  box-shadow: none;
   font-weight: bold;
-  color: #002b66;
-  margin-bottom: 12px;
-  padding-left: 2px;
 }
+.btn-step:hover { background-color: #dee2e6; transform: none; }
 
-.member-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #ffffff;
-  padding: 12px;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
+.list-title { font-size: 1rem; margin-bottom: 12px; font-weight: bold; color: #002b66; }
+.member-list { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .member-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+.member-item:last-child { border-bottom: none; }
+.member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
+.member-info { display: flex; align-items: center; gap: 8px; }
+.member-no { color: #888; font-size: 0.8rem; width: 40px; }
+.member-name { font-weight: bold; }
+.member-actions { display: flex; align-items: center; gap: 6px; }
+
+.turn-badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  display: inline-block;
+  text-align: center;
+}
+.turn-badge.today { background-color: #002b66; color: white; }
+.turn-badge.soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.turn-badge.normal { background-color: #e9ecef; color: #495057; }
+
+.loading { text-align: center; padding: 40px; color: #666; }
+
+/* モーダル共通スタイル */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; padding: 12px; box-sizing: border-box;
+  overscroll-behavior: contain;
+}
+.modal-content {
+  background: white; width: 100%; max-width: 480px; max-height: 85vh;
+  border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header { padding: 14px 18px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-header h2 { font-size: 1.05rem; margin: 0; color: #002b66; font-weight: bold; }
+.close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; padding: 0; line-height: 1; }
+.close-btn:hover { color: #333; }
+
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+}
+
+.admin-card { background: #f8f9fa; padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e9ecef; }
+.admin-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 10px; }
+.add-form { display: flex; gap: 8px; }
+.add-input, .search-input {
+  flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
+}
+.add-input:focus, .search-input:focus { border-color: #002b66; }
+.search-container { margin-bottom: 10px; }
+.search-input { width: 100%; background: #fff; }
+.edit-list-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 4px; }
+
+.edit-member-list {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; }
+.edit-member-item:last-child { border-bottom: none; }
+
+.edit-controls { display: flex; align-items: center; gap: 6px; }
+
+.member-name-clickable {
+  cursor: pointer;
   background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  color: #002b66;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.92rem;
+  font-weight: bold;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.member-name-clickable:hover {
+  background-color: #e2e8f0;
+  border-color: #002b66;
+}
+
+.date-picker-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: #eef5ff;
+  border: 1px solid #b8daff;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.date-picker-box label { font-size: 0.8rem; font-weight: bold; color: #004085; }
+.date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
+.date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
+
+.memo-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 12px;
   border-radius: 10px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 16px;
 }
 
-.member-item.is-next {
-  border-left: 4px solid #002b66;
-  background-color: #ffffff;
-}
-
-.member-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.member-no {
-  font-size: 0.78rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.member-name {
+.memo-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 600;
-  color: #1e293b;
+  line-height: 1.6;
+  color: #333;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: #fff;
 }
 
-.member-actions {
+.memo-textarea::placeholder {
+  font-size: 0.88rem;
+  color: #a0aec0;
+  opacity: 0.8;
+}
+
+.memo-textarea:focus {
+  outline: none;
+  border-color: #002b66;
+  box-shadow: 0 0 0 3px rgba(0, 43, 102, 0.12);
+}
+
+.memo-input-actions {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
+}
+
+.memo-timeline-header {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.memo-timeline {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.turn-badge {
-  font-size: 0.72rem;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.turn-badge.today {
-  background-color: #002b66;
-  color: #ffffff;
-}
-
-.turn-badge.soon {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.turn-badge.normal {
-  background-color: #f1f5f9;
-  color: #64748b;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px 0;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
-/* ==========================================
-   モーダル共通スタイル
-   ========================================== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 16px;
-}
-
-.modal-content {
+.memo-accordion-card {
   background: #ffffff;
-  width: 100%;
-  max-width: 540px;
-  max-height: 85vh;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: border-color 0.2s ease;
+}
+.memo-accordion-card.active {
+  border-color: #002b66;
 }
 
-.modal-header {
+.memo-accordion-header {
+  padding: 10px 14px;
+  background: #f8fafc;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+.memo-accordion-header:hover {
+  background: #f1f5f9;
 }
 
-.modal-header h2 {
-  font-size: 1.1rem;
+.memo-title-preview {
+  font-size: 0.92rem;
+  font-weight: bold;
   color: #002b66;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
-.close-btn {
+.memo-date-tag {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.memo-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+.memo-accordion-card.active .memo-arrow {
+  transform: rotate(180deg);
+}
+
+.memo-accordion-body {
+  display: none;
+  padding: 12px 14px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+.memo-accordion-card.active .memo-accordion-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memo-full-text {
+  font-size: 0.88rem;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.memo-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+  flex-shrink: 0;
+}
+
+.memo-card-btn {
   background: none;
   border: none;
-  font-size: 1.2rem;
-  color: #94a3b8;
+  font-size: 0.78rem;
   cursor: pointer;
+  padding: 3px 8px;
+  font-weight: bold;
+  border-radius: 4px;
 }
+.memo-card-btn.edit { color: #0056b3; background-color: #e8f0fe; }
+.memo-card-btn.delete { color: #dc3545; background-color: #fde8e8; }
 
-/* ==========================================
-   クレドモーダル & アコーディオンデザイン
-   ========================================== */
 .hero-concept {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
-
 .concept-card {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 14px;
+  background: #eaf2f8;
+  border-radius: 8px;
+  padding: 20px;
+  color: #002b66;
 }
-
 .concept-header-tag {
-  font-size: 0.68rem;
-  font-weight: bold;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   color: #002b66;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
-
 .concept-main-title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: #002b66;
-  margin-bottom: 6px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
 }
-
-.no1-highlight {
-  color: #d97706;
-  font-size: 1.3rem;
-  margin: 0 2px;
+.concept-main-title .no1-highlight {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #002b66;
+  letter-spacing: -0.02em;
+  margin: 0 4px;
 }
-
 .concept-body {
-  font-size: 0.82rem;
-  color: #334155;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  color: #1a365d;
+  line-height: 1.8;
 }
-
 .promise-section {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #cbd5e1;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #cbd5e1;
 }
-
 .promise-tag {
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: #d97706;
-  margin-bottom: 2px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #002b66;
+  margin-bottom: 8px;
 }
 
 .section-divider {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #002b66;
+  margin: 24px 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #002b66;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #64748b;
-  margin: 16px 0 10px 0;
-  padding-bottom: 6px;
-  border-bottom: 2px solid #e2e8f0;
 }
 
-/* アコーディオンカード一覧 */
+/* ==========================================
+   クレド アコーディオン構造 (画像デザイン準拠)
+   ========================================== */
 .credo-grid {
   display: flex;
   flex-direction: column;
@@ -469,19 +552,20 @@ body.modal-open {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .credo-card:hover {
-  border-color: #0056b3;
+  border-color: #002b66;
 }
 
 .credo-card.highlight {
-  border: 2px solid #0056b3;
-  background-color: #f0f7ff;
+  background: #f0f7ff;
+  border: 2px solid #002b66;
+  box-shadow: 0 4px 12px rgba(0, 43, 102, 0.15);
 }
 
 .credo-header {
@@ -494,259 +578,49 @@ body.modal-open {
 .credo-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .credo-no {
   background: #002b66;
   color: #ffffff;
   font-weight: bold;
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 6px;
+  font-size: 0.85rem;
+  padding: 3px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0;
 }
 
 .credo-title {
   font-weight: bold;
-  font-size: 0.88rem;
-  color: #2d3748;
+  font-size: 0.92rem;
+  color: #1e293b;
+  line-height: 1.4;
+  margin: 0;
 }
 
 .credo-arrow {
   font-size: 0.75rem;
-  color: #a0aec0;
+  color: #94a3b8;
   transition: transform 0.2s ease;
 }
 
 .credo-card.active .credo-arrow {
   transform: rotate(180deg);
-  color: #0056b3;
+  color: #002b66;
 }
 
 .credo-body {
-  display: none;
+  display: none; /* 初期状態は非表示 */
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed #e2e8f0;
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.7;
   color: #4a5568;
 }
 
 .credo-card.active .credo-body {
-  display: block;
-}
-
-/* ==========================================
-   設定・管理モーダル
-   ========================================== */
-.admin-card {
-  background: #f8fafc;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-}
-
-.admin-title {
-  font-size: 0.82rem;
-  font-weight: bold;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-.add-form {
-  display: flex;
-  gap: 8px;
-}
-
-.add-input, .search-input, .memo-textarea {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-
-.search-container {
-  margin-bottom: 12px;
-}
-
-.edit-list-title {
-  font-size: 0.82rem;
-  font-weight: bold;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-.edit-member-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.edit-member-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-}
-
-.member-name-clickable {
-  background: none;
-  border: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #002b66;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-}
-
-.edit-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* 日付選択エリア */
-.date-picker-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 0.8rem;
-}
-
-.date-picker-input {
-  padding: 6px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-.date-picker-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-/* ==========================================
-   メモモーダル & アコーディオン
-   ========================================== */
-.memo-input-box {
-  margin-bottom: 16px;
-}
-
-.memo-input-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.memo-timeline-header {
-  font-size: 0.82rem;
-  font-weight: bold;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-.memo-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-.memo-accordion-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.memo-accordion-header {
-  padding: 10px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  background: #ffffff;
-}
-
-.memo-title-preview {
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-}
-
-.memo-date-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-
-.memo-arrow {
-  font-size: 0.65rem;
-  transition: transform 0.2s;
-}
-
-.memo-accordion-card.active .memo-arrow {
-  transform: rotate(180deg);
-}
-
-.memo-accordion-body {
-  display: none;
-  padding: 10px 12px;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
-
-.memo-accordion-card.active .memo-accordion-body {
-  display: block;
-}
-
-.memo-full-text {
-  font-size: 0.82rem;
-  color: #334155;
-  white-space: pre-wrap;
-  margin-bottom: 8px;
-}
-
-.memo-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-}
-
-.memo-card-btn {
-  border: none;
-  background: none;
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.memo-card-btn.edit {
-  color: #0284c7;
-}
-
-.memo-card-btn.delete {
-  color: #ef4444;
+  display: block; /* 開いた時だけ表示 */
 }
