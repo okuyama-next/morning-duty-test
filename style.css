@@ -12,7 +12,7 @@ body {
   background-color: #f4f6f9;
   color: #333333;
   line-height: 1.5;
-  padding: 16px;
+  padding: 20px 16px;
   display: flex;
   justify-content: center;
 }
@@ -23,26 +23,23 @@ body.modal-open {
 
 .container {
   width: 100%;
-  max-width: 480px;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 20px;
+  max-width: 600px; /* 本番環境に合わせた幅設定 */
   position: relative;
 }
 
 /* ==========================================
-   ヘッダーエリア
+   ヘッダーエリア（白枠の外側に配置）
    ========================================== */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding: 0 4px;
 }
 
 .header-left h1 {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: bold;
   color: #002b66;
 }
@@ -54,19 +51,20 @@ body.modal-open {
 }
 
 .sheet-link {
-  background-color: #f0f4f8;
+  background-color: #ffffff;
   color: #002b66;
   border: 1px solid #cbd5e1;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .sheet-link:hover {
-  background-color: #e2e8f0;
+  background-color: #f1f5f9;
 }
 
 /* 録音ボタン基本＆録音中スタイル */
@@ -90,11 +88,17 @@ body.modal-open {
 }
 
 .icon-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 /* ==========================================
@@ -147,9 +151,9 @@ body.modal-open {
   background: linear-gradient(135deg, #002b66, #004080);
   color: #ffffff;
   border-radius: 14px;
-  padding: 20px;
+  padding: 24px 20px;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 43, 102, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 43, 102, 0.15);
   margin-bottom: 24px;
 }
 
@@ -167,7 +171,7 @@ body.modal-open {
 }
 
 .next-card .name {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: bold;
   margin: 6px 0;
 }
@@ -176,9 +180,9 @@ body.modal-open {
   font-size: 0.85rem;
   display: inline-block;
   background: rgba(255, 255, 255, 0.2);
-  padding: 2px 10px;
+  padding: 2px 12px;
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 /* ボタン類 */
@@ -196,6 +200,7 @@ body.modal-open {
 
 .btn-main {
   width: 100%;
+  max-width: 280px;
   background-color: #10b981;
   color: #ffffff;
   padding: 12px;
@@ -206,8 +211,8 @@ body.modal-open {
 .btn-small {
   background-color: #10b981;
   color: #ffffff;
-  padding: 5px 10px;
-  font-size: 0.75rem;
+  padding: 5px 12px;
+  font-size: 0.78rem;
   border-radius: 6px;
 }
 
@@ -249,14 +254,19 @@ body.modal-open {
 .list-title {
   font-size: 0.9rem;
   font-weight: bold;
-  color: #475569;
+  color: #002b66;
   margin-bottom: 12px;
+  padding-left: 2px;
 }
 
 .member-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .member-item {
@@ -277,11 +287,11 @@ body.modal-open {
 .member-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .member-no {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -299,15 +309,15 @@ body.modal-open {
 }
 
 .turn-badge {
-  font-size: 0.7rem;
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  padding: 3px 10px;
   border-radius: 12px;
   font-weight: 500;
 }
 
 .turn-badge.today {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #002b66;
+  color: #ffffff;
 }
 
 .turn-badge.soon {
@@ -347,7 +357,7 @@ body.modal-open {
 .modal-content {
   background: #ffffff;
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   max-height: 85vh;
   border-radius: 16px;
   padding: 20px;
@@ -514,7 +524,7 @@ body.modal-open {
 }
 
 .credo-body {
-  display: none; /* 初期状態は折りたたみ */
+  display: none;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed #e2e8f0;
@@ -524,7 +534,7 @@ body.modal-open {
 }
 
 .credo-card.active .credo-body {
-  display: block; /* 展開時に表示 */
+  display: block;
 }
 
 /* ==========================================
