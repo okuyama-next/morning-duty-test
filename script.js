@@ -672,3 +672,21 @@ async function sendPost(payload) {
 }
 
 fetchDutyData();
+
+// 画面のスリープ復帰（タブの表示切り替え）を検知して状態をチェック
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    // 録音中フラグがオンなのに MediaRecorder が停止している場合のリセット処理
+    if (isRecording && mediaRecorder && mediaRecorder.state === "inactive") {
+      console.warn("スリープ復帰を検知: 録音ストリームが停止していたためリセットします。");
+      isRecording = false;
+      const btn = document.getElementById('headerRecordBtn');
+      if (btn) {
+        btn.classList.remove('is-recording');
+        btn.textContent = '🎙️ 朝礼録音';
+      }
+      showRecordStatus('⚠️ 画面スリープにより録音が中断されました。再度録音を行ってください。', 'error');
+      setTimeout(hideRecordStatus, 5000);
+    }
+  }
+});
