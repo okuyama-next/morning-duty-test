@@ -335,7 +335,7 @@ function hideRecordStatus() {
   bar.style.display = 'none';
 }
 
-/* --- クレドモーダル関連処理（アコーディオン形式） --- */
+/* --- クレドモーダル関連処理（アコーディオンUI対応） --- */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
   let html = "";
@@ -693,7 +693,7 @@ async function sendPost(payload) {
 
 fetchDutyData();
 
-// 画面のスリープ復帰（タブ切り替え）時に録音ストリーム切断を安全リセット
+// 画面のスリープ復帰（タブの表示切り替え）を検知して状態をチェック
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (isRecording && mediaRecorder && mediaRecorder.state === "inactive") {
