@@ -221,7 +221,26 @@ async function startHeaderRecording() {
       } 
     });
     
-    mediaRecorder = new MediaRecorder(stream);
+    // 長時間録音対策：32kbpsにビットレートを抑えて軽量化
+    const recorderOptions = {
+      audioBitsPerSecond: 32000
+    };
+
+    if (typeof MediaRecorder.isTypeSupported === 'function') {
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        recorderOptions.mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        recorderOptions.mimeType = 'audio/mp4';
+      }
+    }
+
+    try {
+      mediaRecorder = new MediaRecorder(stream, recorderOptions);
+    } catch (e) {
+      console.warn('指定したオプションでのMediaRecorder生成に失敗したためデフォルト設定で起動します:', e);
+      mediaRecorder = new MediaRecorder(stream);
+    }
+
     audioChunks = [];
 
     mediaRecorder.ondataavailable = event => {
@@ -305,6 +324,22 @@ async function processAudioToPreview(blob) {
           return;
         }
 
+        // 朝礼担当者選択セレクトボックスの動的生成
+        const selectEl = document.getElementById('previewMemberSelect');
+        if (selectEl && globalData && globalData.list) {
+          selectEl.innerHTML = '';
+          globalData.list.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.no;
+            option.textContent = `No.${member.no} ${member.name} さん`;
+            // デフォルトで本日の当番を選択
+            if (globalData.next && Number(member.no) === Number(globalData.next.no)) {
+              option.selected = true;
+            }
+            selectEl.appendChild(option);
+          });
+        }
+
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
         document.getElementById('previewTextarea').value = result.summaryText;
         document.getElementById('previewModal').style.display = 'flex';
@@ -328,13 +363,17 @@ async function confirmAndSendChat() {
     return;
   }
 
+  // 選択された朝礼担当者の targetNo を取得
+  const selectEl = document.getElementById('previewMemberSelect');
+  const selectedTargetNo = selectEl ? Number(selectEl.value) : pendingTargetNo;
+
   const sendBtn = document.getElementById('sendChatBtn');
   sendBtn.disabled = true;
   sendBtn.textContent = '送信中...';
 
   const result = await sendPost({
     action: 'sendConfirmedChatMemo',
-    targetNo: pendingTargetNo,
+    targetNo: selectedTargetNo, // 選択された担当者を送信
     summaryText: finalText
   });
 
@@ -684,7 +723,7 @@ async function addMember() {
 }
 
 async function deleteMember(no, name) {
-  if (!confirm(`本当に ${name} さん（No.${no}）を削除しますか？`)) return;
+  if (!confirm(`売当 ${name} さん（No.${no}）を削除しますか？`)) return;
   
   const res = await sendPost({ action: 'delete', targetNo: no });
   if (res && res.success) {
