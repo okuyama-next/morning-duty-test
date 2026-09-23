@@ -80,6 +80,7 @@ async function fetchDutyData() {
     retryCount = 0;
     renderUI(data);
     renderEditList(data);
+    loadSavedDraft(); // 下書きの自動読み込み
 
   } catch (error) {
     console.warn("データ通信失敗。再試行します:", error);
@@ -251,7 +252,7 @@ async function startHeaderRecording() {
     };
 
     mediaRecorder.onstop = async () => {
-      releaseWakeLock(); // 録音完了時にスリープ防止を解除
+      releaseWakeLock();
       const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
       await processAudioToPreview(audioBlob);
     };
@@ -259,7 +260,6 @@ async function startHeaderRecording() {
     mediaRecorder.start();
     isRecording = true;
 
-    // 録音開始時に画面スリープ防止を起動
     await requestWakeLock();
 
     const btn = document.getElementById('headerRecordBtn');
@@ -280,8 +280,6 @@ function stopHeaderRecording() {
     mediaRecorder.stream.getTracks().forEach(track => track.stop());
     
     isRecording = false;
-
-    // スリープ防止を解除
     releaseWakeLock();
 
     const btn = document.getElementById('headerRecordBtn');
@@ -325,7 +323,6 @@ async function processAudioToPreview(blob) {
           return;
         }
 
-        // 朝礼担当者選択セレクトボックスの動的生成
         populateMemberSelect(globalData && globalData.next ? globalData.next.no : null);
 
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
@@ -344,7 +341,7 @@ async function processAudioToPreview(blob) {
   }
 }
 
-/* --- 下書き保存・再開制御 --- */
+/* --- 下書き保存・再開・ストレージ永続化制御 --- */
 function saveDraft() {
   const finalText = document.getElementById('previewTextarea').value.trim();
   const selectEl = document.getElementById('previewMemberSelect');
@@ -360,9 +357,28 @@ function saveDraft() {
     text: finalText
   };
 
+  // ブラウザの localStorage に永続保存
+  try {
+    localStorage.setItem('morning_duty_draft', JSON.stringify(draftSummary));
+  } catch (e) {
+    console.warn('localStorage 保存失敗:', e);
+  }
+
   document.getElementById('previewModal').style.display = 'none';
-  showRecordStatus('💾 朝礼メモを下書きとして保存しました。ヘッダーの「下書きを開く」から再開できます。', 'info');
+  showRecordStatus('💾 朝礼メモを下書き保存しました。アプリを再開しても「下書きを開く」から読み込めます。', 'info');
   updateDraftBtnUI();
+}
+
+function loadSavedDraft() {
+  try {
+    const saved = localStorage.getItem('morning_duty_draft');
+    if (saved) {
+      draftSummary = JSON.parse(saved);
+      updateDraftBtnUI();
+    }
+  } catch (e) {
+    console.warn('下書き読み込み失敗:', e);
+  }
 }
 
 function openDraft() {
@@ -372,6 +388,14 @@ function openDraft() {
   document.getElementById('previewTextarea').value = draftSummary.text;
   document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認 (下書き)`;
   document.getElementById('previewModal').style.display = 'flex';
+}
+
+function clearDraft() {
+  draftSummary = null;
+  try {
+    localStorage.removeItem('morning_duty_draft');
+  } catch (e) {}
+  updateDraftBtnUI();
 }
 
 function updateDraftBtnUI() {
@@ -404,7 +428,6 @@ async function confirmAndSendChat() {
     return;
   }
 
-  // 選択された朝礼担当者の targetNo を取得
   const selectEl = document.getElementById('previewMemberSelect');
   const selectedTargetNo = selectEl ? Number(selectEl.value) : pendingTargetNo;
 
@@ -423,9 +446,8 @@ async function confirmAndSendChat() {
   document.getElementById('previewModal').style.display = 'none';
 
   if (result && result.success === true) {
-    // 送信成功時に下書きデータをクリア
-    draftSummary = null;
-    updateDraftBtnUI();
+    // 送信完了時に下書きを完全に削除
+    clearDraft();
 
     showRecordStatus(`✅ 朝礼要約を Google Chat に投稿しました！`, 'success');
     setTimeout(hideRecordStatus, 5000);
@@ -436,12 +458,13 @@ async function confirmAndSendChat() {
 }
 
 function cancelPreview() {
-  document.getElementById('previewModal').style.display = 'none';
-  pendingTargetNo = null;
-  draftSummary = null;
-  updateDraftBtnUI();
-  showRecordStatus('要約データを破棄しました。', 'info');
-  setTimeout(hideRecordStatus, 3000);
+  if (confirm('この要約（下書き）を完全に削除しますか？')) {
+    document.getElementById('previewModal').style.display = 'none';
+    pendingTargetNo = null;
+    clearDraft(); // 削除ボタン実行でストレージからも完全破棄
+    showRecordStatus('要約データを削除しました。', 'info');
+    setTimeout(hideRecordStatus, 3000);
+  }
 }
 
 function showRecordStatus(text, type) {
@@ -456,7 +479,7 @@ function hideRecordStatus() {
   bar.style.display = 'none';
 }
 
-/* --- クレドモーダル関連処理（アコーディオンUI対応） --- */
+/* --- クレドモーダル関連処理 --- */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
   let html = "";
@@ -643,7 +666,6 @@ async function deleteMemoItem(memoId) {
   if (globalData) renderEditList(globalData);
 }
 
-// ヘルパー関数
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -812,7 +834,6 @@ async function sendPost(payload) {
 
 fetchDutyData();
 
-// 画面のスリープ復帰（タブの表示切り替え）を検知して状態チェック＆スリープ防止の自動復旧
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "visible") {
     if (isRecording) {
@@ -828,7 +849,6 @@ document.addEventListener("visibilitychange", async () => {
         showRecordStatus('⚠️ 画面スリープにより録音が中断されました。再度録音を行ってください。', 'error');
         setTimeout(hideRecordStatus, 5000);
       } else {
-        // バックグラウンド復帰時に Wake Lock が解除されていた場合は再取得
         await requestWakeLock();
       }
     }
