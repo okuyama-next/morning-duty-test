@@ -436,14 +436,12 @@ async function confirmAndSendChat() {
 }
 
 function cancelPreview() {
-  if (confirm('この要約データを破棄しますか？（下書きも削除されます）')) {
-    document.getElementById('previewModal').style.display = 'none';
-    pendingTargetNo = null;
-    draftSummary = null;
-    updateDraftBtnUI();
-    showRecordStatus('要約データを破棄しました。', 'info');
-    setTimeout(hideRecordStatus, 3000);
-  }
+  document.getElementById('previewModal').style.display = 'none';
+  pendingTargetNo = null;
+  draftSummary = null;
+  updateDraftBtnUI();
+  showRecordStatus('要約データを破棄しました。', 'info');
+  setTimeout(hideRecordStatus, 3000);
 }
 
 function showRecordStatus(text, type) {
