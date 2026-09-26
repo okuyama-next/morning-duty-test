@@ -150,7 +150,9 @@
               <input type="text" id="newMemberName" class="add-input" placeholder="氏名を入力（例: 山田 太郎）">
               <button class="btn btn-add" onclick="addMember()">追加</button>
             </div>
-            <input type="text" id="newMemberAvatar" class="add-input" placeholder="アイコン画像URL（任意 / 空欄でデフォルト）" style="font-size:0.8rem;">
+            <div style="font-size:0.75rem; color:#666; margin-top:4px;">アイコン画像 (URL指定 または ファイル選択):</div>
+            <input type="text" id="newMemberAvatar" class="add-input" placeholder="https://... (画像URL)" style="font-size:0.8rem;">
+            <input type="file" id="newMemberAvatarFile" accept="image/*" style="font-size:0.8rem;">
           </div>
         </div>
 
