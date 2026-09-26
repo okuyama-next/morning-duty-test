@@ -177,7 +177,7 @@ h1 {
   background-color: #ffffff;
 }
 
-/* メインカードの名前（改行防止） */
+/* メインカードの名前 */
 .next-card .name { 
   font-size: 2rem; 
   font-weight: bold; 
@@ -271,12 +271,11 @@ h1 {
 }
 .member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
 
-/* リスト一覧の名前（改行防止） */
+/* リスト一覧の名前（絶対改行なし・溢れたらみ出さない） */
 .member-name { 
   font-weight: bold; 
   white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
+  overflow: visible; 
 }
 .member-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
@@ -290,7 +289,17 @@ h1 {
   white-space: nowrap;
 }
 .turn-badge.today { background-color: #002b66; color: white; }
-.turn-badge.soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+/* ★ もうすぐバッジ（2行最適化デザイン） */
+.turn-badge.soon { 
+  background-color: #fff3cd; 
+  color: #856404; 
+  border: 1px solid #ffeeba; 
+  line-height: 1.25; 
+  padding: 3px 6px;
+  font-size: 0.65rem;
+}
+
 .turn-badge.normal { background-color: #e9ecef; color: #495057; }
 
 .loading { text-align: center; padding: 40px; color: #666; }
@@ -347,7 +356,6 @@ h1 {
 
 .edit-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
-/* 管理設定内の名前ボタン（改行防止） */
 .member-name-clickable {
   cursor: pointer;
   background-color: #f8fafc;
