@@ -258,20 +258,28 @@ h1 {
   align-items: center;
   padding: 10px 14px;
   border-bottom: 1px solid #eee;
-  gap: 8px;
+  gap: 6px;
 }
 .member-item:last-child { border-bottom: none; }
 .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
 .member-info { 
   display: flex; 
   align-items: center; 
-  gap: 10px; 
+  gap: 6px; 
   min-width: 0; 
   flex: 1; 
 }
-.member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
 
-/* リスト一覧の名前（絶対改行なし・溢れたらみ出さない） */
+/* ★ No.の横幅範囲を28pxに縮小してコンパクト化 */
+.member-no { 
+  color: #888; 
+  font-size: 0.75rem; 
+  width: 28px; 
+  flex-shrink: 0; 
+  letter-spacing: -0.03em;
+}
+
+/* リスト一覧の名前（絶対改行なし） */
 .member-name { 
   font-weight: bold; 
   white-space: nowrap; 
@@ -290,7 +298,6 @@ h1 {
 }
 .turn-badge.today { background-color: #002b66; color: white; }
 
-/* ★ もうすぐバッジ（2行最適化デザイン） */
 .turn-badge.soon { 
   background-color: #fff3cd; 
   color: #856404; 
@@ -351,24 +358,25 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; gap: 8px; }
+.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 8px; border-bottom: 1px solid #eee; gap: 4px; }
 .edit-member-item:last-child { border-bottom: none; }
 
-.edit-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.edit-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
+/* 管理設定内の名前ボタン（幅をすっきり最適化） */
 .member-name-clickable {
   cursor: pointer;
   background-color: #f8fafc;
   color: #002b66;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 20px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: bold;
   border: 1px solid #cbd5e1;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
 }
 .member-name-clickable:hover {
