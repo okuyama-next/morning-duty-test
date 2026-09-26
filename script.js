@@ -17,7 +17,7 @@ let wakeLock = null;
 let pendingTargetNo = null;
 let draftSummary = null;
 
-// デフォルトアバター画像（画像がない場合）
+// デフォルトアバター画像
 const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts/svg?seed=";
 
 // クレド（MIND 01〜09）のデータ
@@ -38,6 +38,46 @@ function getAvatarUrl(item) {
     return item.avatarUrl;
   }
   return DEFAULT_AVATAR + encodeURIComponent(item ? item.name : "user");
+}
+
+/* --- 画像ファイルの圧縮＆Base64変換ヘルパー --- */
+function resizeImageFile(file, maxWidth = 200, maxHeight = 200) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // JPEG圧縮で軽量テキスト化
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
 }
 
 /* --- 画面スリープ防止（Wake Lock API）機能 --- */
@@ -224,16 +264,18 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
-/* --- 画像アイコン編集機能 --- */
+/* --- 画像アイコン編集ポップアップ (URL/ファイル選択対応) --- */
 function openAvatarEditor(no, name, currentUrl) {
   const box = document.getElementById('datePickerContainer');
 
   box.className = "date-picker-box";
   box.style.display = "flex";
   box.innerHTML = `
-    <label>🖼️ ${name} さんのアイコン画像URL:</label>
-    <input type="text" id="customAvatarUrl" class="add-input" placeholder="https://... (画像URL)" value="${currentUrl}">
-    <div class="date-picker-actions">
+    <label>🖼️ ${name} さんのアイコン画像設定:</label>
+    <input type="text" id="customAvatarUrl" class="add-input" placeholder="https://... (画像URL)" value="${currentUrl.startsWith('data:') ? '' : currentUrl}" style="font-size:0.8rem;">
+    <div style="font-size:0.75rem; color:#666;">またはファイルを選択 (.jpg / .png):</div>
+    <input type="file" id="customAvatarFile" accept="image/*" style="font-size:0.8rem;">
+    <div class="date-picker-actions" style="margin-top:6px;">
       <button class="btn btn-undo" onclick="closeDatePicker()">キャンセル</button>
       <button class="btn btn-add" onclick="submitUpdateAvatar(${no}, '${name}')">画像を更新</button>
     </div>
@@ -241,9 +283,24 @@ function openAvatarEditor(no, name, currentUrl) {
 }
 
 async function submitUpdateAvatar(no, name) {
-  const urlVal = document.getElementById('customAvatarUrl').value.trim();
+  const urlInput = document.getElementById('customAvatarUrl');
+  const fileInput = document.getElementById('customAvatarFile');
+  
+  let finalAvatarUrl = urlInput ? urlInput.value.trim() : "";
+
+  // ファイルが選択されている場合は Base64 変換を優先
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    try {
+      showRecordStatus('🖼️ 画像を処理中...', 'info');
+      finalAvatarUrl = await resizeImageFile(fileInput.files[0]);
+    } catch (err) {
+      alert("画像の読み込みに失敗しました。");
+      return;
+    }
+  }
+
   closeDatePicker();
-  const res = await sendPost({ action: 'updateAvatar', targetNo: no, avatarUrl: urlVal });
+  const res = await sendPost({ action: 'updateAvatar', targetNo: no, avatarUrl: finalAvatarUrl });
   if (res && res.success) {
     showRecordStatus(`✅ ${name} さんのアイコン画像を更新しました`, 'success');
     setTimeout(hideRecordStatus, 3000);
@@ -818,20 +875,35 @@ async function submitDuty(no, name) {
 
 async function addMember() {
   const nameInput = document.getElementById('newMemberName');
-  const avatarInput = document.getElementById('newMemberAvatar');
+  const avatarUrlInput = document.getElementById('newMemberAvatar');
+  const avatarFileInput = document.getElementById('newMemberAvatarFile');
+
   const name = nameInput.value.trim();
-  const avatarUrl = avatarInput ? avatarInput.value.trim() : "";
+  let avatarUrl = avatarUrlInput ? avatarUrlInput.value.trim() : "";
 
   if (!name) {
     alert("名前を入力してください。");
     return;
   }
+
+  // ファイルが選択されている場合は Base64 変換
+  if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
+    try {
+      showRecordStatus('🖼️ 画像を処理中...', 'info');
+      avatarUrl = await resizeImageFile(avatarFileInput.files[0]);
+    } catch (err) {
+      alert("画像の読み込みに失敗しました。");
+      return;
+    }
+  }
+
   if (!confirm(`${name} さんを新規追加しますか？`)) return;
 
   const res = await sendPost({ action: 'add', name: name, avatarUrl: avatarUrl });
   if (res && res.success) {
     nameInput.value = '';
-    if (avatarInput) avatarInput.value = '';
+    if (avatarUrlInput) avatarUrlInput.value = '';
+    if (avatarFileInput) avatarFileInput.value = '';
     hideUndoBar();
   }
 }
