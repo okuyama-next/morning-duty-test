@@ -18,22 +18,27 @@ body.modal-open {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  gap: 8px; /* ヘッダー要素同士の衝突を防止 */
 }
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0; /* タイトル領域が潰れるのを防ぐ */
 }
 h1 {
   font-size: 1.2rem;
   color: #002b66;
   margin: 0;
   font-weight: bold;
+  white-space: nowrap; /* 朝礼当番表の途中で改行して縦になるのを完全に防止 */
 }
 .header-actions {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap; /* ボタンが増えた場合に安全に折り返す */
+  justify-content: flex-end;
 }
 
 .sheet-link {
