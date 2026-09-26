@@ -256,33 +256,22 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 10px 10px 8px; /* 左側のパッディングを少し狭めてNoを左寄せ */
+  padding: 10px 14px;
   border-bottom: 1px solid #eee;
-  gap: 6px;
+  gap: 8px;
 }
 .member-item:last-child { border-bottom: none; }
 .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
-
 .member-info { 
   display: flex; 
   align-items: center; 
-  gap: 4px; 
+  gap: 10px; 
   min-width: 0; 
   flex: 1; 
 }
+.member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
 
-/* ★ No.の左余白を最小限にし、右側にスペースを確保 */
-.member-no { 
-  color: #888; 
-  font-size: 0.75rem; 
-  width: 28px; 
-  margin-right: 6px; /* 写真との間に程よい間隔を設ける */
-  flex-shrink: 0; 
-  letter-spacing: -0.03em;
-  text-align: left;
-}
-
-/* リスト一覧の名前 */
+/* リスト一覧の名前（絶対改行なし・溢れたらみ出さない） */
 .member-name { 
   font-weight: bold; 
   white-space: nowrap; 
@@ -301,6 +290,7 @@ h1 {
 }
 .turn-badge.today { background-color: #002b66; color: white; }
 
+/* ★ もうすぐバッジ（2行最適化デザイン） */
 .turn-badge.soon { 
   background-color: #fff3cd; 
   color: #856404; 
@@ -361,32 +351,24 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* ★ 管理画面リストアイテムの左右パッディング調整 */
-.edit-member-item { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 10px 6px 10px 6px; 
-  border-bottom: 1px solid #eee; 
-  gap: 4px; 
-}
+.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; gap: 8px; }
 .edit-member-item:last-child { border-bottom: none; }
 
-.edit-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.edit-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .member-name-clickable {
   cursor: pointer;
   background-color: #f8fafc;
   color: #002b66;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: bold;
   border: 1px solid #cbd5e1;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
 }
 .member-name-clickable:hover {
