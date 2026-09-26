@@ -46,7 +46,6 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="previewModalTitle">🔍 朝礼メモの確認</h2>
-        <!-- ★ 右上の✕ボタンは下書き保存して閉じる処理に変更 -->
         <button class="close-btn" onclick="saveDraft()" title="下書き保存して閉じる">✕</button>
       </div>
       <div class="modal-body">
@@ -97,7 +96,7 @@
             <div class="concept-body">
               期待を超える「満足」。<br>
               想像を超える「安心」。<br>
-              公式にも「感動」になる。
+              そして、それは「感動」になる。
             </div>
           </div>
 
@@ -147,17 +146,20 @@
         <div class="admin-card">
           <div class="admin-title">新規メンバー追加</div>
           <div class="add-form">
-            <input type="text" id="newMemberName" class="add-input" placeholder="氏名を入力（例: 山田 太郎）">
-            <button class="btn btn-add" onclick="addMember()">追加</button>
+            <div class="add-input-row">
+              <input type="text" id="newMemberName" class="add-input" placeholder="氏名を入力（例: 山田 太郎）">
+              <button class="btn btn-add" onclick="addMember()">追加</button>
+            </div>
+            <input type="text" id="newMemberAvatar" class="add-input" placeholder="アイコン画像URL（任意 / 空欄でデフォルト）" style="font-size:0.8rem;">
           </div>
         </div>
 
-        <div class="edit-list-title">メンバー管理（回数調整・削除）</div>
+        <div class="edit-list-title">メンバー管理（画像設定・回数調整・削除）</div>
         <div class="search-container">
           <input type="text" id="searchMemberInput" class="search-input" placeholder="🔍 名前で検索..." oninput="filterMemberList()">
         </div>
 
-        <!-- 日付指定ポップアップエリア -->
+        <!-- 日付・画像編集ポップアップエリア -->
         <div id="datePickerContainer" style="display: none;"></div>
 
         <div id="editMemberList" class="edit-member-list">
