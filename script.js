@@ -40,8 +40,8 @@ function getAvatarUrl(item) {
   return DEFAULT_AVATAR + encodeURIComponent(item ? item.name : "user");
 }
 
-/* --- 画像ファイルの圧縮＆Base64変換ヘルパー --- */
-function resizeImageFile(file, maxWidth = 200, maxHeight = 200) {
+/* --- 画像ファイルのクッキリ高画質＆正方形トリミング処理 --- */
+function resizeImageFile(file, targetSize = 400) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -50,28 +50,19 @@ function resizeImageFile(file, maxWidth = 200, maxHeight = 200) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetSize;
+        canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
 
-        // JPEG圧縮で軽量テキスト化
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // 中央正方形に切り抜き
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize);
+
+        // 高画質（0.95）出力
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
         resolve(dataUrl);
       };
       img.onerror = (err) => reject(err);
@@ -288,10 +279,9 @@ async function submitUpdateAvatar(no, name) {
   
   let finalAvatarUrl = urlInput ? urlInput.value.trim() : "";
 
-  // ファイルが選択されている場合は Base64 変換を優先
   if (fileInput && fileInput.files && fileInput.files[0]) {
     try {
-      showRecordStatus('🖼️ 画像を処理中...', 'info');
+      showRecordStatus('🖼️ 高画質処理中...', 'info');
       finalAvatarUrl = await resizeImageFile(fileInput.files[0]);
     } catch (err) {
       alert("画像の読み込みに失敗しました。");
@@ -886,10 +876,9 @@ async function addMember() {
     return;
   }
 
-  // ファイルが選択されている場合は Base64 変換
   if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
     try {
-      showRecordStatus('🖼️ 画像を処理中...', 'info');
+      showRecordStatus('🖼️ 高画質処理中...', 'info');
       avatarUrl = await resizeImageFile(avatarFileInput.files[0]);
     } catch (err) {
       alert("画像の読み込みに失敗しました。");
