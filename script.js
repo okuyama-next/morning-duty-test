@@ -80,7 +80,7 @@ async function fetchDutyData() {
     retryCount = 0;
     renderUI(data);
     renderEditList(data);
-    loadSavedDraft(); // 下書きの自動読み込み
+    loadSavedDraft();
 
   } catch (error) {
     console.warn("データ通信失敗。再試行します:", error);
@@ -218,12 +218,11 @@ async function startHeaderRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ 
       audio: {
         echoCancellation: true,
-        noiseSuppression: false,
+        noiseSuppression: true,
         autoGainControl: true
       } 
     });
     
-    // 長時間録音対策：32kbpsにビットレートを抑えて軽量化
     const recorderOptions = {
       audioBitsPerSecond: 32000
     };
@@ -348,7 +347,7 @@ function saveDraft() {
   const selectedTargetNo = selectEl ? Number(selectEl.value) : pendingTargetNo;
 
   if (!finalText) {
-    alert("テキスト内容が空です。");
+    document.getElementById('previewModal').style.display = 'none';
     return;
   }
 
@@ -357,7 +356,6 @@ function saveDraft() {
     text: finalText
   };
 
-  // ブラウザの localStorage に永続保存
   try {
     localStorage.setItem('morning_duty_draft', JSON.stringify(draftSummary));
   } catch (e) {
@@ -365,7 +363,7 @@ function saveDraft() {
   }
 
   document.getElementById('previewModal').style.display = 'none';
-  showRecordStatus('💾 朝礼メモを下書き保存しました。アプリを再開しても「下書きを開く」から読み込めます。', 'info');
+  showRecordStatus('💾 朝礼メモを下書き保存しました。「下書きを開く」から再開できます。', 'info');
   updateDraftBtnUI();
 }
 
@@ -446,7 +444,6 @@ async function confirmAndSendChat() {
   document.getElementById('previewModal').style.display = 'none';
 
   if (result && result.success === true) {
-    // 送信完了時に下書きを完全に削除
     clearDraft();
 
     showRecordStatus(`✅ 朝礼要約を Google Chat に投稿しました！`, 'success');
@@ -461,7 +458,7 @@ function cancelPreview() {
   if (confirm('この要約（下書き）を完全に削除しますか？')) {
     document.getElementById('previewModal').style.display = 'none';
     pendingTargetNo = null;
-    clearDraft(); // 削除ボタン実行でストレージからも完全破棄
+    clearDraft();
     showRecordStatus('要約データを削除しました。', 'info');
     setTimeout(hideRecordStatus, 3000);
   }
