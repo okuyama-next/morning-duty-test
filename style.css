@@ -177,7 +177,13 @@ h1 {
   background-color: #ffffff;
 }
 
-.next-card .name { font-size: 2.2rem; font-weight: bold; margin: 6px 0 10px 0; }
+/* メインカードの名前（改行防止） */
+.next-card .name { 
+  font-size: 2rem; 
+  font-weight: bold; 
+  margin: 6px 0 10px 0; 
+  white-space: nowrap; 
+}
 .next-card .no {
   font-size: 0.85rem;
   background: rgba(255,255,255,0.2);
@@ -218,10 +224,10 @@ h1 {
   transform: none;
 }
 .btn-main { padding: 10px 20px; font-size: 0.95rem; display: block; margin: 0 auto; }
-.btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; }
+.btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; flex-shrink: 0; }
 .btn-add { background-color: #002b66; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; box-shadow: none; }
 .btn-add:hover { background-color: #00183e; }
-.btn-delete { background-color: #dc3545; padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; box-shadow: none; }
+.btn-delete { background-color: #dc3545; padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; box-shadow: none; flex-shrink: 0; }
 .btn-delete:hover { background-color: #bd2130; }
 .btn-undo { background-color: #6c757d; padding: 6px 14px; font-size: 0.85rem; border-radius: 8px; box-shadow: none; }
 
@@ -240,6 +246,7 @@ h1 {
   padding: 0;
   box-shadow: none;
   font-weight: bold;
+  flex-shrink: 0;
 }
 .btn-step:hover { background-color: #dee2e6; transform: none; }
 
@@ -251,13 +258,27 @@ h1 {
   align-items: center;
   padding: 10px 14px;
   border-bottom: 1px solid #eee;
+  gap: 8px;
 }
 .member-item:last-child { border-bottom: none; }
 .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
-.member-info { display: flex; align-items: center; gap: 10px; }
+.member-info { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  min-width: 0; 
+  flex: 1; 
+}
 .member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
-.member-name { font-weight: bold; }
-.member-actions { display: flex; align-items: center; gap: 6px; }
+
+/* リスト一覧の名前（改行防止） */
+.member-name { 
+  font-weight: bold; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.member-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .turn-badge {
   font-size: 0.7rem;
@@ -266,6 +287,7 @@ h1 {
   font-weight: bold;
   display: inline-block;
   text-align: center;
+  white-space: nowrap;
 }
 .turn-badge.today { background-color: #002b66; color: white; }
 .turn-badge.soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
@@ -320,11 +342,12 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; }
+.edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; gap: 8px; }
 .edit-member-item:last-child { border-bottom: none; }
 
-.edit-controls { display: flex; align-items: center; gap: 6px; }
+.edit-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
+/* 管理設定内の名前ボタン（改行防止） */
 .member-name-clickable {
   cursor: pointer;
   background-color: #f8fafc;
@@ -338,6 +361,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 .member-name-clickable:hover {
   background-color: #e2e8f0;
