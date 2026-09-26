@@ -18,26 +18,26 @@ body.modal-open {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  gap: 8px; /* ヘッダー要素同士の衝突を防止 */
+  gap: 8px;
 }
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0; /* タイトル領域が潰れるのを防ぐ */
+  flex-shrink: 0;
 }
 h1 {
   font-size: 1.2rem;
   color: #002b66;
   margin: 0;
   font-weight: bold;
-  white-space: nowrap; /* 朝礼当番表の途中で改行して縦になるのを完全に防止 */
+  white-space: nowrap;
 }
 .header-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap; /* ボタンが増えた場合に安全に折り返す */
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
@@ -139,6 +139,7 @@ h1 {
   border: 1px solid #f5c6cb;
 }
 
+/* メインカード（次当番） */
 .next-card {
   background: linear-gradient(135deg, #002b66, #0056b3);
   color: white;
@@ -158,7 +159,25 @@ h1 {
   letter-spacing: 0.03em;
 }
 .next-card .label { font-size: 0.9rem; opacity: 0.9; }
-.next-card .name { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
+
+/* 当番メインアイコン表示 */
+.next-avatar-wrapper {
+  margin: 12px 0 6px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.next-avatar-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  background-color: #ffffff;
+}
+
+.next-card .name { font-size: 2.2rem; font-weight: bold; margin: 6px 0 10px 0; }
 .next-card .no {
   font-size: 0.85rem;
   background: rgba(255,255,255,0.2);
@@ -166,6 +185,17 @@ h1 {
   padding: 3px 12px;
   border-radius: 12px;
   margin-bottom: 16px;
+}
+
+/* リストアイテム用アイコン */
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  background-color: #f1f5f9;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -224,8 +254,8 @@ h1 {
 }
 .member-item:last-child { border-bottom: none; }
 .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
-.member-info { display: flex; align-items: center; gap: 8px; }
-.member-no { color: #888; font-size: 0.8rem; width: 40px; }
+.member-info { display: flex; align-items: center; gap: 10px; }
+.member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
 .member-name { font-weight: bold; }
 .member-actions { display: flex; align-items: center; gap: 6px; }
 
@@ -271,7 +301,9 @@ h1 {
 
 .admin-card { background: #f8f9fa; padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e9ecef; }
 .admin-title { font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 10px; }
-.add-form { display: flex; gap: 8px; }
+.add-form { display: flex; flex-direction: column; gap: 8px; }
+.add-input-row { display: flex; gap: 8px; }
+
 .add-input, .search-input {
   flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
 }
@@ -297,14 +329,15 @@ h1 {
   cursor: pointer;
   background-color: #f8fafc;
   color: #002b66;
-  padding: 6px 14px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: bold;
   border: 1px solid #cbd5e1;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
 }
 .member-name-clickable:hover {
   background-color: #e2e8f0;
@@ -544,9 +577,7 @@ h1 {
   align-items: center;
 }
 
-/* ==========================================
-   クレド アコーディオン構造 (画像デザイン準拠)
-   ========================================== */
+/* クレド アコーディオン */
 .credo-grid {
   display: flex;
   flex-direction: column;
@@ -617,7 +648,7 @@ h1 {
 }
 
 .credo-body {
-  display: none; /* 初期状態は非表示 */
+  display: none;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed #e2e8f0;
@@ -627,5 +658,5 @@ h1 {
 }
 
 .credo-card.active .credo-body {
-  display: block; /* 開いた時だけ表示 */
+  display: block;
 }
