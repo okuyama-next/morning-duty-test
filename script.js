@@ -54,14 +54,12 @@ function resizeImageFile(file, targetSize = 400) {
         canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
 
-        // 中央正方形に切り抜き
         const minSide = Math.min(img.width, img.height);
         const sx = (img.width - minSide) / 2;
         const sy = (img.height - minSide) / 2;
 
         ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize);
 
-        // 高画質（0.95）出力
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
         resolve(dataUrl);
       };
@@ -184,7 +182,8 @@ function renderUI(data) {
       badgeText = "次回";
       badgeClass = "soon";
     } else if (index <= 3) {
-      badgeText = `もうすぐ (${index}営業日後)`;
+      // ★ バッジ内を2行（<br>）に変更して横幅を圧縮
+      badgeText = `もうすぐ<br>(${index}営業日後)`;
       badgeClass = "soon";
     } else {
       badgeText = `${index}営業日後`;
