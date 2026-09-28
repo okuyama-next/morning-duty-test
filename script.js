@@ -968,3 +968,14 @@ document.addEventListener("visibilitychange", async () => {
     }
   }
 });
+
+// タイトルロゴ（h1）をタップしたときに最新データを再読み込み
+document.addEventListener("DOMContentLoaded", () => {
+  const titleLogo = document.querySelector(".header-left h1");
+  if (titleLogo) {
+    titleLogo.style.cursor = "pointer";
+    titleLogo.addEventListener("click", () => {
+      fetchDutyData();
+    });
+  }
+});
