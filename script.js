@@ -412,7 +412,6 @@ async function processAudioToPreview(blob) {
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
         document.getElementById('previewTextarea').value = result.summaryText;
         
-        // 背後スクロール防止クラスを追加
         document.body.classList.add('modal-open');
         document.getElementById('previewModal').style.display = 'flex';
       } else {
@@ -451,7 +450,6 @@ function saveDraft() {
     console.warn('localStorage 保存失敗:', e);
   }
 
-  // 背後スクロール防止クラスを解除
   document.body.classList.remove('modal-open');
   document.getElementById('previewModal').style.display = 'none';
   showRecordStatus('💾 朝礼メモを下書き保存しました。「下書きを開く」から再開できます。', 'info');
@@ -477,7 +475,6 @@ function openDraft() {
   document.getElementById('previewTextarea').value = draftSummary.text;
   document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認 (下書き)`;
   
-  // 背後スクロール防止クラスを追加
   document.body.classList.add('modal-open');
   document.getElementById('previewModal').style.display = 'flex';
 }
@@ -536,7 +533,6 @@ async function confirmAndSendChat() {
   sendBtn.disabled = false;
   sendBtn.textContent = '📤 Google Chatに送信';
   
-  // 背後スクロール防止クラスを解除
   document.body.classList.remove('modal-open');
   document.getElementById('previewModal').style.display = 'none';
 
@@ -553,7 +549,6 @@ async function confirmAndSendChat() {
 
 function cancelPreview() {
   if (confirm('この要約（下書き）を完全に削除しますか？')) {
-    // 背後スクロール防止クラスを解除
     document.body.classList.remove('modal-open');
     document.getElementById('previewModal').style.display = 'none';
     pendingTargetNo = null;
@@ -969,13 +964,13 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
-// タイトルロゴ（h1）をタップしたときに最新データを再読み込み
+// ★ タイトルロゴ（h1）またはヘッダー左エリアタップでページ全体をリロード
 document.addEventListener("DOMContentLoaded", () => {
-  const titleLogo = document.querySelector(".header-left h1");
-  if (titleLogo) {
-    titleLogo.style.cursor = "pointer";
-    titleLogo.addEventListener("click", () => {
-      fetchDutyData();
+  const headerLeft = document.querySelector(".header-left");
+  if (headerLeft) {
+    headerLeft.style.cursor = "pointer";
+    headerLeft.addEventListener("click", () => {
+      location.reload();
     });
   }
 });
