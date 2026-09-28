@@ -5,6 +5,8 @@ body {
   padding: 16px;
   color: #333;
 }
+
+/* モーダル表示時に背景のスクロールを完全に固定 */
 body.modal-open {
   overflow: hidden;
 }
@@ -13,6 +15,7 @@ body.modal-open {
   max-width: 500px;
   margin: 0 auto;
 }
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -20,19 +23,30 @@ body.modal-open {
   margin-bottom: 20px;
   gap: 8px;
 }
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
 }
+
+/* タイトルロゴ（タップで画面リフレッシュ可能） */
 h1 {
   font-size: 1.2rem;
   color: #002b66;
   margin: 0;
   font-weight: bold;
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
 }
+
+h1:hover {
+  opacity: 0.75;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -57,9 +71,11 @@ h1 {
   background-color: #ffedd5;
   border: 1px solid #fed7aa;
 }
+
 .record-btn:hover {
   background-color: #fdba74;
 }
+
 .record-btn.is-recording {
   background-color: #dc3545;
   color: white;
@@ -78,6 +94,7 @@ h1 {
   background-color: #e8f0fe;
   border: 1px solid #b8daff;
 }
+
 .credo-btn:hover {
   background-color: #d0e1fd;
 }
@@ -96,6 +113,7 @@ h1 {
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
+
 .icon-btn:hover {
   background-color: #f0f0f0;
   transform: rotate(30deg);
@@ -123,16 +141,19 @@ h1 {
   text-align: center;
   transition: all 0.3s ease;
 }
+
 .record-status-bar.info {
   background-color: #e8f0fe;
   color: #002b66;
   border: 1px solid #b8daff;
 }
+
 .record-status-bar.success {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
 }
+
 .record-status-bar.error {
   background-color: #f8d7da;
   color: #721c24;
@@ -149,6 +170,7 @@ h1 {
   box-shadow: 0 4px 12px rgba(0,43,102,0.3);
   margin-bottom: 24px;
 }
+
 .next-card .today-date {
   font-size: 0.85rem;
   background: rgba(255, 255, 255, 0.15);
@@ -158,6 +180,7 @@ h1 {
   margin-bottom: 12px;
   letter-spacing: 0.03em;
 }
+
 .next-card .label { font-size: 0.9rem; opacity: 0.9; }
 
 /* 当番メインアイコン表示 */
@@ -167,6 +190,7 @@ h1 {
   justify-content: center;
   align-items: center;
 }
+
 .next-avatar-img {
   width: 72px;
   height: 72px;
@@ -177,13 +201,14 @@ h1 {
   background-color: #ffffff;
 }
 
-/* メインカードの名前 */
+/* メインカードの名前（改行防止） */
 .next-card .name { 
   font-size: 2rem; 
   font-weight: bold; 
   margin: 6px 0 10px 0; 
   white-space: nowrap; 
 }
+
 .next-card .no {
   font-size: 0.85rem;
   background: rgba(255,255,255,0.2);
@@ -214,15 +239,18 @@ h1 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
   transition: all 0.2s ease;
 }
+
 .btn:hover {
   background-color: #218838;
   transform: translateY(-1px);
 }
+
 .btn:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
   transform: none;
 }
+
 .btn-main { padding: 10px 20px; font-size: 0.95rem; display: block; margin: 0 auto; }
 .btn-small { padding: 5px 12px; font-size: 0.75rem; border-radius: 14px; flex-shrink: 0; }
 .btn-add { background-color: #002b66; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; box-shadow: none; }
@@ -248,10 +276,12 @@ h1 {
   font-weight: bold;
   flex-shrink: 0;
 }
+
 .btn-step:hover { background-color: #dee2e6; transform: none; }
 
 .list-title { font-size: 1rem; margin-bottom: 12px; font-weight: bold; color: #002b66; }
 .member-list { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
 .member-item {
   display: flex;
   justify-content: space-between;
@@ -260,8 +290,10 @@ h1 {
   border-bottom: 1px solid #eee;
   gap: 8px;
 }
+
 .member-item:last-child { border-bottom: none; }
 .member-item.is-next { background-color: #e8f0fe; border-left: 4px solid #002b66; }
+
 .member-info { 
   display: flex; 
   align-items: center; 
@@ -269,14 +301,16 @@ h1 {
   min-width: 0; 
   flex: 1; 
 }
+
 .member-no { color: #888; font-size: 0.8rem; width: 36px; flex-shrink: 0; }
 
-/* リスト一覧の名前（絶対改行なし・溢れたらみ出さない） */
+/* リスト一覧の名前（途中で切らせず1行固定表示） */
 .member-name { 
   font-weight: bold; 
   white-space: nowrap; 
   overflow: visible; 
 }
+
 .member-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .turn-badge {
@@ -288,9 +322,10 @@ h1 {
   text-align: center;
   white-space: nowrap;
 }
+
 .turn-badge.today { background-color: #002b66; color: white; }
 
-/* ★ もうすぐバッジ（2行最適化デザイン） */
+/* もうすぐバッジ（2行で横幅をスマートに収めるデザイン） */
 .turn-badge.soon { 
   background-color: #fff3cd; 
   color: #856404; 
@@ -313,11 +348,13 @@ h1 {
   z-index: 1000; padding: 12px; box-sizing: border-box;
   overscroll-behavior: contain;
 }
+
 .modal-content {
   background: white; width: 100%; max-width: 480px; max-height: 85vh;
   border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   display: flex; flex-direction: column; overflow: hidden;
 }
+
 .modal-header { padding: 14px 18px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .modal-header h2 { font-size: 1.05rem; margin: 0; color: #002b66; font-weight: bold; }
 .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; padding: 0; line-height: 1; }
@@ -338,6 +375,7 @@ h1 {
 .add-input, .search-input {
   flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
 }
+
 .add-input:focus, .search-input:focus { border-color: #002b66; }
 .search-container { margin-bottom: 10px; }
 .search-input { width: 100%; background: #fff; }
@@ -351,6 +389,7 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
 .edit-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; gap: 8px; }
 .edit-member-item:last-child { border-bottom: none; }
 
@@ -371,6 +410,7 @@ h1 {
   gap: 6px;
   white-space: nowrap;
 }
+
 .member-name-clickable:hover {
   background-color: #e2e8f0;
   border-color: #002b66;
@@ -386,6 +426,7 @@ h1 {
   flex-direction: column;
   gap: 8px;
 }
+
 .date-picker-box label { font-size: 0.8rem; font-weight: bold; color: #004085; }
 .date-picker-input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 0.85rem; }
 .date-picker-actions { display: flex; justify-content: flex-end; gap: 6px; }
@@ -455,6 +496,7 @@ h1 {
   box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   transition: border-color 0.2s ease;
 }
+
 .memo-accordion-card.active {
   border-color: #002b66;
 }
@@ -468,6 +510,7 @@ h1 {
   cursor: pointer;
   user-select: none;
 }
+
 .memo-accordion-header:hover {
   background: #f1f5f9;
 }
@@ -494,6 +537,7 @@ h1 {
   font-size: 0.7rem;
   transition: transform 0.2s ease;
 }
+
 .memo-accordion-card.active .memo-arrow {
   transform: rotate(180deg);
 }
@@ -504,6 +548,7 @@ h1 {
   background: #ffffff;
   border-top: 1px solid #f1f5f9;
 }
+
 .memo-accordion-card.active .memo-accordion-body {
   display: flex;
   flex-direction: column;
@@ -539,6 +584,7 @@ h1 {
   font-weight: bold;
   border-radius: 4px;
 }
+
 .memo-card-btn.edit { color: #0056b3; background-color: #e8f0fe; }
 .memo-card-btn.delete { color: #dc3545; background-color: #fde8e8; }
 
@@ -548,12 +594,14 @@ h1 {
   gap: 14px;
   margin-bottom: 24px;
 }
+
 .concept-card {
   background: #eaf2f8;
   border-radius: 8px;
   padding: 20px;
   color: #002b66;
 }
+
 .concept-header-tag {
   font-size: 1.6rem;
   font-weight: 800;
@@ -562,6 +610,7 @@ h1 {
   margin-bottom: 10px;
   font-family: 'Helvetica Neue', Arial, sans-serif;
 }
+
 .concept-main-title {
   font-size: 1.25rem;
   font-weight: bold;
@@ -572,6 +621,7 @@ h1 {
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .concept-main-title .no1-highlight {
   font-size: 2.2rem;
   font-weight: 900;
@@ -579,16 +629,19 @@ h1 {
   letter-spacing: -0.02em;
   margin: 0 4px;
 }
+
 .concept-body {
   font-size: 0.88rem;
   color: #1a365d;
   line-height: 1.8;
 }
+
 .promise-section {
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid #cbd5e1;
 }
+
 .promise-tag {
   font-size: 1.1rem;
   font-weight: 800;
