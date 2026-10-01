@@ -17,8 +17,10 @@ let wakeLock = null;
 let pendingTargetNo = null;
 let draftSummary = null;
 
+// デフォルトアバター画像
 const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts/svg?seed=";
 
+// クレド（MIND 01〜09）のデータ
 const CREDO_DATA = [
   { no: "01", title: "見た目と印象は中身を語る。", text: "明るく元気にあいさつする人は、みんなから愛される。<br>明るく元気に笑って泣いて怒る人も、みんなから愛される。<br>感謝の気持ちを声にすると、やまびこになって返ってくる。<br>礼儀とマナーを身につけると、不思議と心もキレイになる。" },
   { no: "02", title: "お客様の心を理解する心。", text: "お客様に嘘をつく人は、家族や友人にも嘘をつく。<br>お客様と誠実に向き合う人は、すべての人と誠実に向き合う。<br>お客様の気持ちになって考えることは、自分の心の中を覗いてみることに等しい。" },
@@ -38,6 +40,7 @@ function getAvatarUrl(item) {
   return DEFAULT_AVATAR + encodeURIComponent(item ? item.name : "user");
 }
 
+/* --- 画像ファイルのクッキリ高画質＆正方形トリミング処理 --- */
 function resizeImageFile(file, targetSize = 400) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -50,11 +53,15 @@ function resizeImageFile(file, targetSize = 400) {
         canvas.width = targetSize;
         canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
+
         const minSide = Math.min(img.width, img.height);
         const sx = (img.width - minSide) / 2;
         const sy = (img.height - minSide) / 2;
+
         ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize);
-        resolve(canvas.toDataURL('image/jpeg', 0.95));
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        resolve(dataUrl);
       };
       img.onerror = (err) => reject(err);
     };
@@ -62,51 +69,61 @@ function resizeImageFile(file, targetSize = 400) {
   });
 }
 
+/* --- 画面スリープ防止（Wake Lock API）機能 --- */
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
+      console.log('画面スリープ防止（Wake Lock）が有効化されました');
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error(`Wake Lock エラー: ${err.name}, ${err.message}`);
+  }
 }
 
 function releaseWakeLock() {
   if (wakeLock !== null) {
-    wakeLock.release().then(() => { wakeLock = null; }).catch(() => {});
+    wakeLock.release()
+      .then(() => {
+        wakeLock = null;
+        console.log('画面スリープ防止（Wake Lock）を解除しました');
+      })
+      .catch(err => {
+        console.error(`Wake Lock 解除エラー: ${err.message}`);
+      });
   }
 }
 
 function getTodayFormattedString() {
   const now = new Date();
-  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-  const year = jstNow.getFullYear();
-  const month = jstNow.getMonth() + 1;
-  const date = jstNow.getDate();
-  const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][jstNow.getDay()];
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
   return `${year}年${month}月${date}日(${dayOfWeek})`;
 }
 
 async function fetchDutyData() {
   try {
     const response = await fetch(GAS_URL, { redirect: "follow" });
+    
     const text = await response.text();
-    let data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      throw new Error("HTML応答エラー（リトライ処理へ）");
+    }
 
     globalData = data;
     retryCount = 0;
     renderUI(data);
     renderEditList(data);
-
-    // サーバー側に自動保存された要約データがあるかチェック
-    if (data.serverDraft && data.serverDraft.text) {
-      draftSummary = data.serverDraft;
-      updateDraftBtnUI();
-      openDraft();
-    } else {
-      loadSavedDraft();
-    }
+    loadSavedDraft();
 
   } catch (error) {
+    console.warn("データ通信失敗。再試行します:", error);
+    
     if (retryCount < 3) {
       retryCount++;
       setTimeout(fetchDutyData, 1000);
@@ -128,6 +145,7 @@ function retryFetch() {
 
 function renderUI(data) {
   const app = document.getElementById('app');
+  
   if (!data.list || data.list.length === 0) {
     app.innerHTML = '<div class="loading">メンバーが登録されていません</div>';
     return;
@@ -154,8 +172,23 @@ function renderUI(data) {
 
   data.list.forEach((item, index) => {
     const isNext = index === 0;
-    let badgeText = index === 0 ? "本日" : index === 1 ? "次回" : index <= 3 ? `もうすぐ<br>(${index}営業日後)` : `${index}営業日後`;
-    let badgeClass = index === 0 ? "today" : index <= 3 ? "soon" : "normal";
+    let badgeText = "";
+    let badgeClass = "normal";
+
+    if (index === 0) {
+      badgeText = "本日";
+      badgeClass = "today";
+    } else if (index === 1) {
+      badgeText = "次回";
+      badgeClass = "soon";
+    } else if (index <= 3) {
+      badgeText = `もうすぐ<br>(${index}営業日後)`;
+      badgeClass = "soon";
+    } else {
+      badgeText = `${index}営業日後`;
+      badgeClass = "normal";
+    }
+
     const avatarUrl = getAvatarUrl(item);
 
     html += `
@@ -185,9 +218,15 @@ function renderEditList(data, filterKeyword = "") {
   }
 
   let sortedList = [...data.list].sort((a, b) => a.no - b.no);
+
   if (filterKeyword.trim() !== "") {
     const kw = filterKeyword.trim().toLowerCase();
     sortedList = sortedList.filter(item => item.name.toLowerCase().includes(kw));
+  }
+
+  if (sortedList.length === 0) {
+    container.innerHTML = '<div style="padding:12px;text-align:center;color:#888;">該当するメンバーが見つかりません</div>';
+    return;
   }
 
   let html = "";
@@ -214,8 +253,10 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
+/* --- 画像アイコン編集ポップアップ --- */
 function openAvatarEditor(no, name, currentUrl) {
   const box = document.getElementById('datePickerContainer');
+
   box.className = "date-picker-box";
   box.style.display = "flex";
   box.innerHTML = `
@@ -233,6 +274,7 @@ function openAvatarEditor(no, name, currentUrl) {
 async function submitUpdateAvatar(no, name) {
   const urlInput = document.getElementById('customAvatarUrl');
   const fileInput = document.getElementById('customAvatarFile');
+  
   let finalAvatarUrl = urlInput ? urlInput.value.trim() : "";
 
   if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -253,6 +295,7 @@ async function submitUpdateAvatar(no, name) {
   }
 }
 
+/* --- ヘッダー録音・確認プレビュー機能 --- */
 function toggleHeaderRecording() {
   if (isRecording) {
     stopHeaderRecording();
@@ -264,10 +307,17 @@ function toggleHeaderRecording() {
 async function startHeaderRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      } 
     });
     
-    const recorderOptions = { audioBitsPerSecond: 32000 };
+    const recorderOptions = {
+      audioBitsPerSecond: 32000
+    };
+
     if (typeof MediaRecorder.isTypeSupported === 'function') {
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         recorderOptions.mimeType = 'audio/webm;codecs=opus';
@@ -279,12 +329,16 @@ async function startHeaderRecording() {
     try {
       mediaRecorder = new MediaRecorder(stream, recorderOptions);
     } catch (e) {
+      console.warn('指定したオプションでのMediaRecorder生成に失敗したためデフォルト設定で起動します:', e);
       mediaRecorder = new MediaRecorder(stream);
     }
 
     audioChunks = [];
+
     mediaRecorder.ondataavailable = event => {
-      if (event.data.size > 0) audioChunks.push(event.data);
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
     };
 
     mediaRecorder.onstop = async () => {
@@ -295,15 +349,18 @@ async function startHeaderRecording() {
 
     mediaRecorder.start();
     isRecording = true;
+
     await requestWakeLock();
 
     const btn = document.getElementById('headerRecordBtn');
     btn.classList.add('is-recording');
     btn.textContent = '⏹️ 録音停止';
-    showRecordStatus(`🔴 朝礼を録音中...（画面を閉じても大丈夫です）`, 'info');
+
+    showRecordStatus(`🔴 朝礼を録音中...（他の操作も可能です）`, 'info');
 
   } catch (err) {
-    alert('マイクの使用許可が必要です。');
+    alert('マイクの使用許可が必要です。ブラウザのマイクアクセスを許可してください。');
+    console.error('録音エラー:', err);
   }
 }
 
@@ -319,7 +376,7 @@ function stopHeaderRecording() {
     btn.classList.remove('is-recording');
     btn.textContent = '🎙️ 朝礼録音';
 
-    showRecordStatus('⏳ 音声を送信しました！AI要約を作成中...（画面を閉じても裏で要約されます）', 'info');
+    showRecordStatus('⏳ AIが文字起こし・要約を生成中...（そのままお待ちください）', 'info');
   }
 }
 
@@ -329,25 +386,48 @@ async function processAudioToPreview(blob) {
     reader.readAsDataURL(blob);
     reader.onloadend = async () => {
       const base64Data = reader.result.split(',')[1];
-      let mimeType = blob.type.includes('mp4') ? 'audio/mp4' : blob.type.includes('ogg') ? 'audio/ogg' : 'audio/webm';
+      
+      let mimeType = blob.type || 'audio/webm';
+      if (mimeType.includes('mp4') || mimeType.includes('aac')) {
+        mimeType = 'audio/mp4';
+      } else if (mimeType.includes('ogg')) {
+        mimeType = 'audio/ogg';
+      } else {
+        mimeType = 'audio/webm';
+      }
+
       pendingTargetNo = globalData && globalData.next ? globalData.next.no : null;
 
-      // 即時送信して裏側で要約を起動
-      await sendPost({
+      const result = await sendPost({
         action: 'generateAudioSummaryOnly',
         audioBase64: base64Data,
-        mimeType: mimeType,
-        targetNo: pendingTargetNo
+        mimeType: mimeType
       });
 
-      showRecordStatus('✅ 音声の受け付けが完了しました。要約完了まで15秒ほどお待ちください。画面ロゴをタップすると確認できます。', 'success');
-      setTimeout(hideRecordStatus, 8000);
+      hideRecordStatus();
+
+      if (result && result.success === true && result.summaryText) {
+        populateMemberSelect(globalData && globalData.next ? globalData.next.no : null);
+
+        document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
+        document.getElementById('previewTextarea').value = result.summaryText;
+        
+        document.body.classList.add('modal-open');
+        document.getElementById('previewModal').style.display = 'flex';
+      } else {
+        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
+        showRecordStatus(`❌ ${errMsg}`, 'error');
+        setTimeout(hideRecordStatus, 5000);
+      }
     };
   } catch (e) {
-    showRecordStatus('❌ 音声送信中にエラーが発生しました。', 'error');
+    console.error('音声処理失敗:', e);
+    showRecordStatus('❌ 音声処理中にエラーが発生しました。', 'error');
+    setTimeout(hideRecordStatus, 5000);
   }
 }
 
+/* --- 下書き保存・再開・ストレージ永続化制御 --- */
 function saveDraft() {
   const finalText = document.getElementById('previewTextarea').value.trim();
   const selectEl = document.getElementById('previewMemberSelect');
@@ -359,14 +439,20 @@ function saveDraft() {
     return;
   }
 
-  draftSummary = { targetNo: selectedTargetNo, text: finalText };
+  draftSummary = {
+    targetNo: selectedTargetNo,
+    text: finalText
+  };
+
   try {
     localStorage.setItem('morning_duty_draft', JSON.stringify(draftSummary));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('localStorage 保存失敗:', e);
+  }
 
   document.body.classList.remove('modal-open');
   document.getElementById('previewModal').style.display = 'none';
-  showRecordStatus('💾 朝礼メモを下書き保存しました。', 'info');
+  showRecordStatus('💾 朝礼メモを下書き保存しました。「下書きを開く」から再開できます。', 'info');
   updateDraftBtnUI();
 }
 
@@ -377,14 +463,18 @@ function loadSavedDraft() {
       draftSummary = JSON.parse(saved);
       updateDraftBtnUI();
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('下書き読み込み失敗:', e);
+  }
 }
 
 function openDraft() {
   if (!draftSummary) return;
+
   populateMemberSelect(draftSummary.targetNo);
   document.getElementById('previewTextarea').value = draftSummary.text;
-  document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
+  document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認 (下書き)`;
+  
   document.body.classList.add('modal-open');
   document.getElementById('previewModal').style.display = 'flex';
 }
@@ -395,12 +485,13 @@ function clearDraft() {
     localStorage.removeItem('morning_duty_draft');
   } catch (e) {}
   updateDraftBtnUI();
-  sendPost({ action: 'clearDraft' });
 }
 
 function updateDraftBtnUI() {
   const btn = document.getElementById('openDraftBtn');
-  if (btn) btn.style.display = draftSummary ? 'inline-block' : 'none';
+  if (btn) {
+    btn.style.display = draftSummary ? 'inline-block' : 'none';
+  }
 }
 
 function populateMemberSelect(selectedNo) {
@@ -421,7 +512,10 @@ function populateMemberSelect(selectedNo) {
 
 async function confirmAndSendChat() {
   const finalText = document.getElementById('previewTextarea').value.trim();
-  if (!finalText) return alert("テキスト内容が空です。");
+  if (!finalText) {
+    alert("テキスト内容が空です。");
+    return;
+  }
 
   const selectEl = document.getElementById('previewMemberSelect');
   const selectedTargetNo = selectEl ? Number(selectEl.value) : pendingTargetNo;
@@ -438,12 +532,17 @@ async function confirmAndSendChat() {
 
   sendBtn.disabled = false;
   sendBtn.textContent = '📤 Google Chatに送信';
+  
   document.body.classList.remove('modal-open');
   document.getElementById('previewModal').style.display = 'none';
 
   if (result && result.success === true) {
     clearDraft();
+
     showRecordStatus(`✅ 朝礼要約を Google Chat に投稿しました！`, 'success');
+    setTimeout(hideRecordStatus, 5000);
+  } else {
+    showRecordStatus('❌ 送信に失敗しました。', 'error');
     setTimeout(hideRecordStatus, 5000);
   }
 }
@@ -452,7 +551,10 @@ function cancelPreview() {
   if (confirm('この要約（下書き）を完全に削除しますか？')) {
     document.body.classList.remove('modal-open');
     document.getElementById('previewModal').style.display = 'none';
+    pendingTargetNo = null;
     clearDraft();
+    showRecordStatus('要約データを削除しました。', 'info');
+    setTimeout(hideRecordStatus, 3000);
   }
 }
 
@@ -468,6 +570,7 @@ function hideRecordStatus() {
   bar.style.display = 'none';
 }
 
+/* --- クレドモーダル関連処理 --- */
 function renderCredoList() {
   const container = document.getElementById('credoGrid');
   let html = "";
@@ -475,10 +578,15 @@ function renderCredoList() {
     html += `
       <div class="credo-card" id="credoCard-${index}" onclick="toggleCredoCard(${index})">
         <div class="credo-header">
-          <div class="credo-header-left"><span class="credo-no">${item.no}</span><span class="credo-title">${item.title}</span></div>
+          <div class="credo-header-left">
+            <span class="credo-no">${item.no}</span>
+            <span class="credo-title">${item.title}</span>
+          </div>
           <span class="credo-arrow">▼</span>
         </div>
-        <div class="credo-body">${item.text}</div>
+        <div class="credo-body">
+          ${item.text}
+        </div>
       </div>
     `;
   });
@@ -487,7 +595,9 @@ function renderCredoList() {
 
 function toggleCredoCard(index) {
   const targetCard = document.getElementById(`credoCard-${index}`);
-  if (targetCard) targetCard.classList.toggle('active');
+  if (targetCard) {
+    targetCard.classList.toggle('active');
+  }
 }
 
 function openCredoModal() {
@@ -503,7 +613,11 @@ function closeCredoModal() {
 
 function selectRandomCredo() {
   const cards = document.querySelectorAll('.credo-card');
-  cards.forEach(c => { c.classList.remove('highlight'); c.classList.remove('active'); });
+  cards.forEach(c => {
+    c.classList.remove('highlight');
+    c.classList.remove('active');
+  });
+  
   const randomIndex = Math.floor(Math.random() * CREDO_DATA.length);
   const targetCard = document.getElementById(`credoCard-${randomIndex}`);
   if (targetCard) {
@@ -513,13 +627,16 @@ function selectRandomCredo() {
   }
 }
 
+/* --- メモモーダル制御 --- */
 function openMemoModal(no, name) {
   currentMemoTargetNo = no;
   editingMemoId = null;
+  
   document.getElementById('settingsModal').style.display = 'none';
   document.getElementById('memoModalTitle').textContent = `📝 ${name} さんのメモ`;
   document.getElementById('memoInput').value = '';
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+
   renderMemoTimeline();
   document.getElementById('memoModal').style.display = 'flex';
 }
@@ -534,11 +651,16 @@ function closeMemoModal() {
 function renderMemoTimeline() {
   const timelineEl = document.getElementById('memoTimeline');
   timelineEl.innerHTML = '';
+
   if (!globalData || !globalData.list) return;
   const member = globalData.list.find(m => Number(m.no) === Number(currentMemoTargetNo));
   if (!member) return;
 
   let memoList = member.memos ? [...member.memos] : [];
+  if (member.memo && member.memo.trim() !== "" && memoList.length === 0) {
+    memoList = [{ id: "legacy-1", text: member.memo, date: "以前のメモ" }];
+  }
+
   if (memoList.length === 0) {
     timelineEl.innerHTML = '<p style="color: #a0aec0; font-size: 0.82rem; text-align: center; margin: 20px 0;">メモはまだありません。</p>';
     return;
@@ -553,13 +675,25 @@ function renderMemoTimeline() {
     const titlePreview = lines[0].trim() || '無題のメモ';
     const bodyText = lines.slice(1).join('\n').trim();
 
+    let formattedDate = memo.date || '';
+    if (formattedDate.includes(' ')) {
+      formattedDate = formattedDate.split(' ')[0];
+    }
+
+    const bodyHtml = bodyText !== '' 
+      ? `<div class="memo-full-text">${escapeHtml(bodyText)}</div>`
+      : `<div class="memo-full-text" style="color: #94a3b8; font-style: italic; font-size: 0.8rem;">（詳細テキストなし）</div>`;
+
     card.innerHTML = `
       <div class="memo-accordion-header" onclick="toggleMemoCard('memoCard-${memo.id}')">
         <div class="memo-title-preview">📌 ${escapeHtml(titlePreview)}</div>
-        <div class="memo-date-tag"><span>${memo.date || ''}</span><span class="memo-arrow">▼</span></div>
+        <div class="memo-date-tag">
+          <span>${formattedDate}</span>
+          <span class="memo-arrow">▼</span>
+        </div>
       </div>
       <div class="memo-accordion-body">
-        <div class="memo-full-text">${escapeHtml(bodyText || memo.text)}</div>
+        ${bodyHtml}
         <div class="memo-card-actions">
           <button class="memo-card-btn edit" onclick="startEditMemo('${memo.id}', \`${escapeJsString(memo.text)}\`)">編集</button>
           <button class="memo-card-btn delete" onclick="deleteMemoItem('${memo.id}')">削除</button>
@@ -572,24 +706,34 @@ function renderMemoTimeline() {
 
 function toggleMemoCard(cardId) {
   const card = document.getElementById(cardId);
-  if (card) card.classList.toggle('active');
+  if (card) {
+    card.classList.toggle('active');
+  }
 }
 
 async function saveMemo() {
   if (currentMemoTargetNo === null) return;
+
   const text = document.getElementById('memoInput').value.trim();
-  if (!text) return alert('メモ内容を入力してください。');
+  if (!text) {
+    alert('メモ内容を入力してください。');
+    return;
+  }
+
+  const targetNo = currentMemoTargetNo;
 
   if (editingMemoId !== null) {
-    await sendPost({ action: 'editMemo', targetNo: currentMemoTargetNo, memoId: editingMemoId, text: text });
+    await sendPost({ action: 'editMemo', targetNo: targetNo, memoId: editingMemoId, text: text });
   } else {
-    await sendPost({ action: 'addMemo', targetNo: currentMemoTargetNo, text: text });
+    await sendPost({ action: 'addMemo', targetNo: targetNo, text: text });
   }
 
   document.getElementById('memoInput').value = '';
   editingMemoId = null;
   document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+
   renderMemoTimeline();
+  if (globalData) renderEditList(globalData);
 }
 
 function startEditMemo(memoId, currentText) {
@@ -600,21 +744,42 @@ function startEditMemo(memoId, currentText) {
 
 async function deleteMemoItem(memoId) {
   if (!confirm('このメモを削除しますか？')) return;
+
   await sendPost({ action: 'deleteMemo', targetNo: currentMemoTargetNo, memoId: memoId });
+
+  if (editingMemoId === memoId) {
+    editingMemoId = null;
+    document.getElementById('memoInput').value = '';
+    document.getElementById('saveMemoBtn').textContent = 'メモを追加';
+  }
+
   renderMemoTimeline();
+  if (globalData) renderEditList(globalData);
 }
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function escapeJsString(str) {
-  return String(str).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/'/g, "\\'").replace(/"/g, '\\"');
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$/g, '\\$')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"');
 }
 
+/* --- モーダル・日付指定制御 --- */
 function openDatePicker(no, name) {
   const box = document.getElementById('datePickerContainer');
   const todayStr = new Date().toISOString().split('T')[0];
+
   box.className = "date-picker-box";
   box.style.display = "flex";
   box.innerHTML = `
@@ -635,7 +800,10 @@ function closeDatePicker() {
 
 async function submitCustomDuty(no, name) {
   const dateVal = document.getElementById('customDutyDate').value;
-  if (!dateVal) return alert("日付を選択してください。");
+  if (!dateVal) {
+    alert("日付を選択してください。");
+    return;
+  }
   closeDatePicker();
   const res = await sendPost({ action: 'complete', targetNo: no, customDate: dateVal });
   if (res && res.success) {
@@ -675,16 +843,21 @@ function showUndoBar(text, payload) {
   const bar = document.getElementById('undoBar');
   bar.className = "undo-bar";
   bar.style.display = "flex";
-  bar.innerHTML = `<span>${text}</span><button class="btn btn-undo" onclick="executeUndo()">元に戻す ↩</button>`;
+  bar.innerHTML = `
+    <span>${text}</span>
+    <button class="btn btn-undo" onclick="executeUndo()">元に戻す ↩</button>
+  `;
 }
 
 function hideUndoBar() {
   pendingUndoPayload = null;
-  document.getElementById('undoBar').style.display = "none";
+  const bar = document.getElementById('undoBar');
+  bar.style.display = "none";
 }
 
 async function submitDuty(no, name) {
   if (!confirm(`${name} さんの朝礼完了を記録しますか？\n`)) return;
+  
   const res = await sendPost({ action: 'complete', targetNo: no });
   if (res && res.success) {
     showUndoBar(`${name} さんの完了を記録しました`, { action: 'undo', undoType: 'complete', targetNo: no });
@@ -695,17 +868,22 @@ async function addMember() {
   const nameInput = document.getElementById('newMemberName');
   const avatarUrlInput = document.getElementById('newMemberAvatar');
   const avatarFileInput = document.getElementById('newMemberAvatarFile');
+
   const name = nameInput.value.trim();
   let avatarUrl = avatarUrlInput ? avatarUrlInput.value.trim() : "";
 
-  if (!name) return alert("名前を入力してください。");
+  if (!name) {
+    alert("名前を入力してください。");
+    return;
+  }
 
   if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
     try {
       showRecordStatus('🖼️ 高画質処理中...', 'info');
       avatarUrl = await resizeImageFile(avatarFileInput.files[0]);
     } catch (err) {
-      return alert("画像の読み込みに失敗しました。");
+      alert("画像の読み込みに失敗しました。");
+      return;
     }
   }
 
@@ -722,9 +900,16 @@ async function addMember() {
 
 async function deleteMember(no, name) {
   if (!confirm(`本当に ${name} さん（No.${no}）を削除しますか？`)) return;
+  
   const res = await sendPost({ action: 'delete', targetNo: no });
   if (res && res.success) {
-    showUndoBar(`${name} さんを削除しました`, { action: 'undo', undoType: 'delete', targetNo: no, name: name });
+    showUndoBar(`${name} さんを削除しました`, { 
+      action: 'undo', 
+      undoType: 'delete', 
+      targetNo: no, 
+      name: name,
+      savedDates: res.savedDates || []
+    });
   }
 }
 
@@ -741,13 +926,16 @@ async function sendPost(payload) {
       method: 'POST',
       body: JSON.stringify(payload)
     });
+
     const result = await response.json();
     globalData = result;
     renderUI(result);
     renderEditList(result);
     return result;
+
   } catch (error) {
     alert("処理中にエラーが発生しました。");
+    console.error(error);
     fetchDutyData();
     return null;
   }
@@ -755,10 +943,34 @@ async function sendPost(payload) {
 
 fetchDutyData();
 
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible") {
+    if (isRecording) {
+      if (mediaRecorder && mediaRecorder.state === "inactive") {
+        console.warn("スリープ復帰を検知: 録音ストリームが停止していたためリセットします。");
+        isRecording = false;
+        releaseWakeLock();
+        const btn = document.getElementById('headerRecordBtn');
+        if (btn) {
+          btn.classList.remove('is-recording');
+          btn.textContent = '🎙️ 朝礼録音';
+        }
+        showRecordStatus('⚠️ 画面スリープにより録音が中断されました。再度録音を行ってください。', 'error');
+        setTimeout(hideRecordStatus, 5000);
+      } else {
+        await requestWakeLock();
+      }
+    }
+  }
+});
+
+// ★ タイトルロゴ（h1）またはヘッダー左エリアタップでページ全体をリロード
 document.addEventListener("DOMContentLoaded", () => {
   const headerLeft = document.querySelector(".header-left");
   if (headerLeft) {
     headerLeft.style.cursor = "pointer";
-    headerLeft.addEventListener("click", () => { location.reload(); });
+    headerLeft.addEventListener("click", () => {
+      location.reload();
+    });
   }
 });
