@@ -9,6 +9,7 @@ let editingMemoId = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
+let isProcessingSummary = false; // ★ 要約処理中フラグ
 
 // 画面スリープ防止（Wake Lock）用変数
 let wakeLock = null;
@@ -96,10 +97,11 @@ function releaseWakeLock() {
 
 function getTodayFormattedString() {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const date = now.getDate();
-  const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
+  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const year = jstNow.getFullYear();
+  const month = jstNow.getMonth() + 1;
+  const date = jstNow.getDate();
+  const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][jstNow.getDay()];
   return `${year}年${month}月${date}日(${dayOfWeek})`;
 }
 
@@ -382,6 +384,7 @@ function stopHeaderRecording() {
 
 async function processAudioToPreview(blob) {
   try {
+    isProcessingSummary = true; // ★ 離脱防止フラグON
     const reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = async () => {
@@ -404,9 +407,20 @@ async function processAudioToPreview(blob) {
         mimeType: mimeType
       });
 
+      isProcessingSummary = false; // ★ 離脱防止フラグOFF
       hideRecordStatus();
 
       if (result && result.success === true && result.summaryText) {
+        // ★ 自動でローカルストレージへ要約結果を即時保存（画面閉じ対策）
+        draftSummary = {
+          targetNo: globalData && globalData.next ? globalData.next.no : null,
+          text: result.summaryText
+        };
+        try {
+          localStorage.setItem('morning_duty_draft', JSON.stringify(draftSummary));
+          updateDraftBtnUI();
+        } catch (e) {}
+
         populateMemberSelect(globalData && globalData.next ? globalData.next.no : null);
 
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
@@ -421,6 +435,7 @@ async function processAudioToPreview(blob) {
       }
     };
   } catch (e) {
+    isProcessingSummary = false;
     console.error('音声処理失敗:', e);
     showRecordStatus('❌ 音声処理中にエラーが発生しました。', 'error');
     setTimeout(hideRecordStatus, 5000);
@@ -942,6 +957,15 @@ async function sendPost(payload) {
 }
 
 fetchDutyData();
+
+/* ★ 処理中にうっかりタブや画面を閉じようとした際のアラートガード */
+window.addEventListener("beforeunload", (event) => {
+  if (isProcessingSummary) {
+    event.preventDefault();
+    event.returnValue = "要約生成処理中です。画面を閉じると処理が中断される可能性があります。";
+    return event.returnValue;
+  }
+});
 
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "visible") {
