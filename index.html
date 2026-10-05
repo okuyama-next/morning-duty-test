@@ -16,8 +16,8 @@
   <div class="container">
     <div class="header">
       <div class="header-left">
-  <!-- タップすると最新データを再読み込み -->
-  <h1 onclick="fetchDutyData()" title="タップしてデータを更新" style="cursor: pointer;">朝礼当番表</h1>
+        <!-- タップすると最新データを再読み込み -->
+        <h1 onclick="fetchDutyData()" title="タップしてデータを更新" style="cursor: pointer;">朝礼当番表</h1>
       </div>
       <div class="header-actions">
         <!-- 下書き再開ボタン（下書きが存在する場合に表示） -->
@@ -42,6 +42,19 @@
     </div>
   </div>
 
+  <!-- AI要約中専用の全画面ポップアップモーダル -->
+  <div id="processingModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="text-align: center; padding: 30px 20px; max-width: 380px;">
+      <div style="font-size: 2.5rem; margin-bottom: 12px; animation: pulse 1.5s infinite;">🤖</div>
+      <h2 style="font-size: 1.1rem; color: #002b66; margin-bottom: 10px;">AIが朝礼要約を生成中...</h2>
+      <p style="font-size: 0.85rem; color: #555; line-height: 1.6; margin: 0 0 16px 0;">
+        音声データを解析しています（約15秒）。<br>
+        <strong style="color: #dc3545;">このまま画面を閉じずにお待ちください。</strong>
+      </p>
+      <div class="loading" style="padding: 10px 0;">⏳ 処理中...</div>
+    </div>
+  </div>
+
   <!-- AI要約確認・編集モーダル（送信前プレビュー / 下書き兼用） -->
   <div id="previewModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
@@ -53,18 +66,6 @@
         <div style="font-size:0.82rem; color:#555; margin-bottom:8px;">
           AIが生成した朝礼メモです。必要に応じて編集してから送信してください。
         </div>
-     <!-- AI要約中専用の全画面ポップアップモーダル -->
-<div id="processingModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content" style="text-align: center; padding: 30px 20px; max-width: 380px;">
-    <div style="font-size: 2.5rem; margin-bottom: 12px; animation: pulse 1.5s infinite;">🤖</div>
-    <h2 style="font-size: 1.1rem; color: #002b66; margin-bottom: 10px;">AIが朝礼要約を生成中...</h2>
-    <p style="font-size: 0.85rem; color: #555; line-height: 1.6; margin: 0 0 16px 0;">
-      音声データを解析しています（約15秒）。<br>
-      <strong style="color: #dc3545;">このまま画面を閉じずにお待ちください。</strong>
-    </p>
-    <div class="loading" style="padding: 10px 0;">⏳ 処理中...</div>
-  </div>
-</div>
 
         <!-- 朝礼担当者 選択エリア -->
         <div style="margin-bottom: 12px; text-align: left;">
