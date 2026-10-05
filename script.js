@@ -10,6 +10,9 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
+// 直前の録音音声データ保持（やり直し用）
+let lastRecordedAudio = null;
+
 // 画面スリープ防止（Wake Lock）用変数
 let wakeLock = null;
 
@@ -120,6 +123,7 @@ async function fetchDutyData() {
     renderUI(data);
     renderEditList(data);
     loadSavedDraft();
+    checkRetryAudioData(); // 一時保存された録音のやり直しボタンチェック
 
   } catch (error) {
     console.warn("データ通信失敗。再試行します:", error);
@@ -253,7 +257,6 @@ function renderEditList(data, filterKeyword = "") {
   container.innerHTML = html;
 }
 
-/* --- 画像アイコン編集ポップアップ --- */
 function openAvatarEditor(no, name, currentUrl) {
   const box = document.getElementById('datePickerContainer');
 
@@ -376,7 +379,10 @@ function stopHeaderRecording() {
     btn.classList.remove('is-recording');
     btn.textContent = '🎙️ 朝礼録音';
 
-    showRecordStatus('⏳ AIが文字起こし・要約を生成中...（そのままお待ちください）', 'info');
+    // ★ 全画面ポップアップ（要約中モーダル）を表示
+    document.body.classList.add('modal-open');
+    const procModal = document.getElementById('processingModal');
+    if (procModal) procModal.style.display = 'flex';
   }
 }
 
@@ -396,6 +402,12 @@ async function processAudioToPreview(blob) {
         mimeType = 'audio/webm';
       }
 
+      // ★ 直前の録音データをやり直し用にローカルストレージへ一時退避
+      lastRecordedAudio = { base64Data, mimeType };
+      try {
+        localStorage.setItem('morning_duty_pending_audio', JSON.stringify(lastRecordedAudio));
+      } catch (e) {}
+
       pendingTargetNo = globalData && globalData.next ? globalData.next.no : null;
 
       const result = await sendPost({
@@ -404,9 +416,14 @@ async function processAudioToPreview(blob) {
         mimeType: mimeType
       });
 
-      hideRecordStatus();
+      // ★ 全画面ポップアップを閉じる
+      const procModal = document.getElementById('processingModal');
+      if (procModal) procModal.style.display = 'none';
 
       if (result && result.success === true && result.summaryText) {
+        // 成功したら一時保存録音データをクリア
+        clearPendingAudioData();
+
         populateMemberSelect(globalData && globalData.next ? globalData.next.no : null);
 
         document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
@@ -415,16 +432,84 @@ async function processAudioToPreview(blob) {
         document.body.classList.add('modal-open');
         document.getElementById('previewModal').style.display = 'flex';
       } else {
-        const errMsg = (result && result.errorMessage) ? result.errorMessage : 'AI処理に失敗しました。もう一度お試しください。';
-        showRecordStatus(`❌ ${errMsg}`, 'error');
-        setTimeout(hideRecordStatus, 5000);
+        document.body.classList.remove('modal-open');
+        showRetryStatus('❌ 要約生成に失敗しました（通信切断等）。');
       }
     };
   } catch (e) {
     console.error('音声処理失敗:', e);
-    showRecordStatus('❌ 音声処理中にエラーが発生しました。', 'error');
-    setTimeout(hideRecordStatus, 5000);
+    const procModal = document.getElementById('processingModal');
+    if (procModal) procModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    showRetryStatus('❌ 通信エラーが発生しました。');
   }
+}
+
+/* --- 失敗時のやり直し（再要約）処理 --- */
+function showRetryStatus(msg) {
+  const bar = document.getElementById('recordStatusBar');
+  bar.className = 'record-status-bar error';
+  bar.style.display = 'block';
+  bar.innerHTML = `
+    <span>${msg}</span>
+    <button class="btn btn-add" style="margin-left:10px; background-color:#d97706; padding:4px 10px; font-size:0.8rem;" onclick="retryGenerateSummary()">🔄 もう一度要約する</button>
+  `;
+}
+
+async function retryGenerateSummary() {
+  let audioData = lastRecordedAudio;
+  if (!audioData) {
+    try {
+      const saved = localStorage.getItem('morning_duty_pending_audio');
+      if (saved) audioData = JSON.parse(saved);
+    } catch (e) {}
+  }
+
+  if (!audioData) {
+    alert("やり直し可能な録音データが見つかりません。再度録音を行ってください。");
+    hideRecordStatus();
+    return;
+  }
+
+  hideRecordStatus();
+  document.body.classList.add('modal-open');
+  const procModal = document.getElementById('processingModal');
+  if (procModal) procModal.style.display = 'flex';
+
+  const result = await sendPost({
+    action: 'generateAudioSummaryOnly',
+    audioBase64: audioData.base64Data,
+    mimeType: audioData.mimeType
+  });
+
+  if (procModal) procModal.style.display = 'none';
+
+  if (result && result.success === true && result.summaryText) {
+    clearPendingAudioData();
+    populateMemberSelect(globalData && globalData.next ? globalData.next.no : null);
+    document.getElementById('previewModalTitle').textContent = `🔍 朝礼メモの確認`;
+    document.getElementById('previewTextarea').value = result.summaryText;
+    document.getElementById('previewModal').style.display = 'flex';
+  } else {
+    document.body.classList.remove('modal-open');
+    showRetryStatus('❌ 要約生成に再度失敗しました。');
+  }
+}
+
+function checkRetryAudioData() {
+  try {
+    const saved = localStorage.getItem('morning_duty_pending_audio');
+    if (saved) {
+      showRetryStatus('⚠️️ 前回中断された朝礼の録音データが残っています。');
+    }
+  } catch (e) {}
+}
+
+function clearPendingAudioData() {
+  lastRecordedAudio = null;
+  try {
+    localStorage.removeItem('morning_duty_pending_audio');
+  } catch (e) {}
 }
 
 /* --- 下書き保存・再開・ストレージ永続化制御 --- */
